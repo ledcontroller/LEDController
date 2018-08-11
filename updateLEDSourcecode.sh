@@ -16,6 +16,6 @@ chmod +x ./buffertest.js
 cp ./LED-Controller.service /etc/systemd/system/
 echo "Service copied"
 
-systemctl daemon-relaod
+systemctl daemon-reload
 echo "Systemd Services reloaded"
 echo "Done"
