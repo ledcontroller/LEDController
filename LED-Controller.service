@@ -1,0 +1,10 @@
+[Unit]
+Description=LED Controller
+
+[Service]
+ExecStart=/led/js/LED-Controller.js
+Restart=always
+WorkingDirectory=/led/js/
+
+[Install]
+WantedBy=multi-user.target
