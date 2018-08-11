@@ -27,19 +27,19 @@ const NOTIFICATIONS = {
     "centertoside": CenterToSideNotification,
 };
 
+// Parameter parsing
 const PARAMS = {}
 for(let i = 2; i < process.argv.length; i++) {
-    process.argv[i];
-    let param = process.argv[i].substring(1, process.argv[i].length)
-    PARAMS[param.split("=")[0]] = param.split("=")[1]; 
+    if (process.argv[i].startsWith("-")) {
+        let param = process.argv[i].substring(1, process.argv[i].length)
+        let value = param.split("=")[1];
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            value = value.substring(1);
+            value = value.substr(0, value.length - 2);
+        }
+        PARAMS[param.split("=")[0]] = value
+    }
 }
-/*
-    -token="asdf"
-    -port=1234
-    -ups=120
-    -ledcount=182
-    -spi=""
-*/
 
 const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
 const API_PORT = PARAMS["port"] || 1234;
