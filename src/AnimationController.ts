@@ -12,9 +12,7 @@ export class AnimationController {
     notificationStack: Array<INotification> = [];
     afterNotificationAnimation: IAnimation;
     running: boolean;
-    nextResetTime: Date;
     ups: number;
-    resetSeconds: number = 10;
     loop;
 
     constructor(strip: Dotstar) {
@@ -59,15 +57,6 @@ export class AnimationController {
 
     update() {
         this.animation.update(this.leds, this.strip);
-
-        if (this.nextResetTime < new Date()) {
-            this.stopUpdate();
-            setTimeout(() => {
-                this.start(this.ups);
-                this.nextResetTime = new Date();
-                this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
-            }, 1000);
-        }
     }
 
     start(updatesPerSeconde: number): void {
@@ -75,8 +64,6 @@ export class AnimationController {
             this.ups = updatesPerSeconde;
             this.loop = setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
-            this.nextResetTime = new Date();
-            this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
         }
     }
 
