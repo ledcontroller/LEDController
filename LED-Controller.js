@@ -285,7 +285,6 @@ class AnimationController {
         this.leds = [];
         this.isPlayingNotification = false;
         this.notificationStack = [];
-        this.resetSeconds = 10;
         this.strip = strip;
         // Init LEDs
         for (let i = 0; i < this.strip.length; i++) {
@@ -323,22 +322,12 @@ class AnimationController {
     }
     update() {
         this.animation.update(this.leds, this.strip);
-        if (this.nextResetTime < new Date()) {
-            this.stopUpdate();
-            setTimeout(() => {
-                this.start(this.ups);
-                this.nextResetTime = new Date();
-                this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
-            }, 1000);
-        }
     }
     start(updatesPerSeconde) {
         if (!this.running) {
             this.ups = updatesPerSeconde;
             this.loop = setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
-            this.nextResetTime = new Date();
-            this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
         }
     }
     stopUpdate() {
