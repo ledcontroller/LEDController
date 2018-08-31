@@ -18,9 +18,9 @@ $ git clone https://github.com/Lucarus/LEDController.git
 Set your NODE_ENV:
 ```bash
 # i want to edit the code
-$ export NODE_ENV=production
-# i don't want to edit the code (thus webpack is not required)
 $ export NODE_ENV=development
+# i don't want to edit the code (thus webpack is not required)
+$ export NODE_ENV=production
 ```
 
 Install all the dependencies using `npm` or [yarn](https://yarnpkg.com/lang/en/)
