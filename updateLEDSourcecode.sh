@@ -10,10 +10,9 @@ rm -r /led/js/192.168.178.25/
 
 echo "Wget Done"
 
-chmod +x ./LED-Controller.js
-chmod +x ./buffertest.js
+chmod +x /led/js/LED-Controller.js
 
-cp ./LED-Controller.service /etc/systemd/system/
+cp /led/js/LED-Controller.service /etc/systemd/system/
 echo "Service copied"
 
 systemctl daemon-reload

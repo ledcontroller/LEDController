@@ -29,7 +29,7 @@ const NOTIFICATIONS = {
 
 // Parameter parsing
 const PARAMS = {}
-for(let i = 2; i < process.argv.length; i++) {
+for(let i = 0; i < process.argv.length; i++) {
     if (process.argv[i].startsWith("-")) {
         let param = process.argv[i].substring(1, process.argv[i].length)
         let value = param.split("=")[1];
@@ -157,6 +157,7 @@ animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
     console.log('LED-Controller listening on Port %s', API_PORT);
+    console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
