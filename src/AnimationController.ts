@@ -45,7 +45,7 @@ export class AnimationController {
 
             // Play next Notification
             if (this.notificationStack.length > 0) {
-                this.playNotification(this.notificationStack.pop());
+                this.playNotification(this.notificationStack.shift());
                 return;
             } else {
                 this.update();
