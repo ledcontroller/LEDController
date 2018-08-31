@@ -2,7 +2,7 @@
 Description=LED Controller
 
 [Service]
-ExecStart=/led/js/LED-Controller.js
+ExecStart=/led/js/LED-Controller.js -apiname=tisch_leds
 Restart=always
 WorkingDirectory=/led/js/
 
