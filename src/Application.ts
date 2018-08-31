@@ -110,6 +110,28 @@ API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
     return next();
 });
 
+
+API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => {
+    for(let notification of req.body.notifications) {
+        notification.ledCount = LEDCOUNT;
+
+        //Get Animation Class and Initialize with Parameters from Request
+        let NotificationClass = NOTIFICATIONS[notification.effect];
+        if (NotificationClass) {
+            try {
+                animationController.playNotification(new NotificationClass(notification))
+            } catch (error) {
+                return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
+            }
+        } else {
+            return next(new ERRORS.NotFoundError("Notification not found"));
+        }
+    }
+
+    sendSuccess(res);
+    return next();
+});
+
 API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) => {
     let path = req.route.path;
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
