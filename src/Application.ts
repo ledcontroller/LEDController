@@ -45,9 +45,10 @@ const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packe
 const API_PORT = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
 const LEDCOUNT = PARAMS["ledcount"] || 182;
-const RASBISPI = PARAMS["spi"] || "/dev/spidev0.0";
+const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
+const API_NAME = PARAMS["apiname"] || "led_controller";
 
-const spi = SPI.initialize(RASBISPI);
+const spi = SPI.initialize(RASPISPI);
 
 class MySPI implements ISpi {
     write(buffer: Buffer, callback: Function) {
@@ -80,14 +81,14 @@ function sendSuccess(res): void {
     res.send(200, {"status": 200, "message": "LEDs changed"});
 }
 
-API.post("/tisch_leds/debug/heapdump", (req, res, next) => {
+API.post("/" + API_NAME + "/debug/heapdump", (req, res, next) => {
     HEAPDUMP.writeSnapshot();
 
     sendSuccess(res);
     return next();
 });
 
-API.post("/tisch_leds/api/animations/*", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
     let path = req.route.path;
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
@@ -109,7 +110,7 @@ API.post("/tisch_leds/api/animations/*", checkToken, (req, res, next) => {
     return next();
 });
 
-API.post("/tisch_leds/api/notifications/*", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) => {
     let path = req.route.path;
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
@@ -131,7 +132,7 @@ API.post("/tisch_leds/api/notifications/*", checkToken, (req, res, next) => {
     return next();
 });
 
-API.post("/tisch_leds/api/start", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/start", checkToken, (req, res, next) => {
     if (req.body.update_per_second) {
         animationController.start(req.body.update_per_second);
     } else {
@@ -142,7 +143,7 @@ API.post("/tisch_leds/api/start", checkToken, (req, res, next) => {
     return next();
 });
 
-API.post("/tisch_leds/api/stop", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
     animationController.stopUpdate();
     animationController.clearLEDs();
 
@@ -159,5 +160,5 @@ API.listen(API_PORT, function() {
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
-    console.log('SPI path: %s', RASBISPI);
+    console.log('SPI path: %s', RASPISPI);
 });
