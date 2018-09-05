@@ -6,6 +6,7 @@ module.exports = function (env, arg) {
     entry: './src/Application.ts',
     mode: 'development',
     devtool: 'source-map',
+    target: 'node',
     module: {
       rules: [
         {
@@ -23,7 +24,7 @@ module.exports = function (env, arg) {
       'heapdump': 'commonjs heapdump'
     },
     plugins: [
-      new webpack.BannerPlugin({ banner: "#!/usr/local/bin/node", raw: true })
+      new webpack.BannerPlugin({ banner: '#!/usr/local/bin/node', raw: true })
     ],
     resolve: {
       extensions: ['.ts', '.js' ]
