@@ -6,9 +6,7 @@ import {SideToSide} from "./Animations/SideToSide";
 import {Fade} from "./Animations/Fade";
 import {BlinkNotification} from "./Notifications/BlinkNotification";
 import { CenterToSideNotification } from "./Notifications/CenterToSideNotification";
-import { ISpi } from "../node_modules/dotstar";
 
-const HEAPDUMP = require('heapdump');
 const DOT = require("dotstar");
 const SPI = require("pi-spi");
 const RSF = require("restify");
@@ -49,16 +47,6 @@ const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
 const API_NAME = PARAMS["apiname"] || "led_controller";
 
 const spi = SPI.initialize(RASPISPI);
-
-class MySPI implements ISpi {
-    write(buffer: Buffer, callback: Function) {
-        callback(undefined, buffer);
-    }
-    //write(buffer: Buffer, callback: (error: any, data: any) => void): void;
-}
-
-//const spi = new MySPI();
-
 const strip = new DOT.Dotstar(spi, {
     length: LEDCOUNT
 });
@@ -80,13 +68,6 @@ function sendSuccess(res): void {
     res.contentType = "json",
     res.send(200, {"status": 200, "message": "LEDs changed"});
 }
-
-API.post("/" + API_NAME + "/debug/heapdump", (req, res, next) => {
-    HEAPDUMP.writeSnapshot();
-
-    sendSuccess(res);
-    return next();
-});
 
 API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
     let path = req.route.path;
