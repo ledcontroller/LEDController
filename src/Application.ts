@@ -154,6 +154,17 @@ API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
     return next();
 });
 
+API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
+    res.contentType = "json",
+    res.send(200, {
+        "status": 200, 
+        "updates_per_second": animationController.ups,
+        "running": animationController.running,
+        "isPlayingNotification": animationController.isPlayingNotification,
+        "version": VERSION
+    });
+    return next();
+});
 
 
 animationController.start(UPDATES_PER_SECOND);
