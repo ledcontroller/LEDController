@@ -45,6 +45,7 @@ const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
 const LEDCOUNT = PARAMS["ledcount"] || 182;
 const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
 const API_NAME = PARAMS["apiname"] || "led_controller";
+const VERSION = "0.1.0"
 
 const spi = SPI.initialize(RASPISPI);
 const strip = new DOT.Dotstar(spi, {
@@ -170,10 +171,23 @@ API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
 animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
-    console.log('LED-Controller listening on Port %s', API_PORT);
+    console.log('LED-Controller %s', VERSION);
+    console.log('Listening on Port %s', API_PORT);
     console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
     console.log('SPI path: %s', RASPISPI);
+});
+
+function exitApplication() {
+    strip.off();
+    spi.close();
+    console.log("Bye!");
+}
+
+process.on ("SIGINT", () => exitApplication());
+process.on ("SIGTERM", () => {
+    exitApplication();
+    process.exit(0);
 });
