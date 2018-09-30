@@ -103,7 +103,7 @@ An Animation is a class that implements the `IAnimation` interface. The interfac
 
 ## Notifiaction
 
-A Notifiaction is an Animation with a limited runtime. A Nortification can be used to show that something happened. For example you could use IFTTT and create a trigger if you receive an E-Mail and if you have your [LED-Controller](#LED-Controller,) open to the internet (At your own risk) you could let your LEDs blink green once.
+A Notifiaction is an Animation with a limited runtime. A Notification can be used to show that something happened. For example you could use IFTTT and create a trigger if you receive an E-Mail and if you have your [LED-Controller](#LED-Controller,) open to the internet (At your own risk) you could let your LEDs blink green once.
 
 For the `Animation-Controller` to know whether an Notifiaction finished playing, an notification needs to implement the `INotifiaction` interface, which extends `IAnimation` the `INotification` interface requires the implementation of a function that takes a callback. This callback needs to be called when the Notification finished playing.
 
@@ -113,6 +113,6 @@ For the `Animation-Controller` to know whether an Notifiaction finished playing,
 
 ## Final words
 
-This application was my first try on using Typescript, I learned many cool things in the process. I hope you have much fun looking at my code and testing it youself :)
+This application was my first take on using Typescript, I learned many cool things in the process. I hope you have much fun looking at my code and testing it youself :)
 
 If you find any inconvenient parts in my code, please don't hasitate to tell me :) 
