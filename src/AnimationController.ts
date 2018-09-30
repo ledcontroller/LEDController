@@ -72,14 +72,11 @@ export class AnimationController {
         this.running = false;
     }
 
-    turnoffLEDs(): void {
-        this.strip.off();
-    }
-
     clearLEDs(): void {
         this.strip.clear();
         for (let i = 0; i < this.strip.length; i++) {
             this.leds.push(new Led({r: 0, g: 0, b: 0, a: 0}));
         }
+        this.strip.sync();
     }
 }
