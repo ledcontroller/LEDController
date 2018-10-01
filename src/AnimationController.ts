@@ -3,6 +3,7 @@ import {IAnimation} from './IAnimation'
 import {Dotstar} from "dotstar";
 import {Static} from "./Animations/Static";
 import {INotification} from "./INotification";
+import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 
 export class AnimationController {
     animation: IAnimation = new Static({r: 0, g: 255, b: 0, a: 0.2});
@@ -25,6 +26,7 @@ export class AnimationController {
     }
 
     changeAnimation(newAnimation: IAnimation): void {
+        if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.isPlayingNotification) {
             this.afterNotificationAnimation = newAnimation;
         } else {

@@ -3,6 +3,7 @@ import {Led} from "../Led";
 import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {IBlinkData} from "../Transferinterfaces/IBlinkData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class Blink implements IAnimation{
     colors: Array<IColor>;
@@ -16,7 +17,7 @@ export class Blink implements IAnimation{
         this.frameCounter = requestParameter.duration; // Color gets set at first Update
 
         if (!(this.colors && this.activeTime && this.frameCounter)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
     }
 

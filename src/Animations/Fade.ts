@@ -3,6 +3,7 @@ import {Led} from "../Led";
 import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { IFadeData } from "../Transferinterfaces/IFadeData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class Fade implements IAnimation{
     colors: Array<IColor>;
@@ -19,7 +20,7 @@ export class Fade implements IAnimation{
         this.smoothness = requestParameter.smoothness;
         
         if (!(this.colors && this.steps && this.smoothness)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
 
         this.calculateNextColorAndSteps();

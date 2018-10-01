@@ -3,6 +3,7 @@ import {Led} from "../Led";
 import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { ISideToSideData } from "../Transferinterfaces/ISideToSideData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class SideToSide implements IAnimation{
     colors: Array<IColor>;
@@ -18,7 +19,7 @@ export class SideToSide implements IAnimation{
         this.ledcount = requestParameter.ledCount;
 
         if (!(this.colors && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
     }
 

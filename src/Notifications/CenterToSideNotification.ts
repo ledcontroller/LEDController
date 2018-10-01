@@ -4,6 +4,7 @@ import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
 import { ICenterToSideNotificationData } from "../Transferinterfaces/ICenterToSideNotificationData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class CenterToSideNotification implements INotification{
     colors: Array<IColor>;
@@ -19,7 +20,7 @@ export class CenterToSideNotification implements INotification{
         this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
 
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
     }
 

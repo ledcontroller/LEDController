@@ -3,6 +3,7 @@ import {Led} from "../Led";
 import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { ICenterToSideData } from "../Transferinterfaces/ICenterToSideData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class CenterToSide implements IAnimation{
     colors: Array<IColor>;
@@ -19,7 +20,7 @@ export class CenterToSide implements IAnimation{
         this.ledcount = requestParameter.ledCount;
 
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
     }
 

@@ -4,6 +4,7 @@ import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
 import { IBlinkNotificationData } from "../Transferinterfaces/IBlinkNotificationData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
 
 export class BlinkNotification implements INotification{
     colors: Array<IColor>;
@@ -18,7 +19,7 @@ export class BlinkNotification implements INotification{
         this.frameCounter = this.activeTime; // Color gets set at first Update
     
         if (!(this.colors && this.activeTime)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError("Wrong parameter provided");
         }
     }
 

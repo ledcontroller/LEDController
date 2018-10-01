@@ -6,6 +6,8 @@ import {SideToSide} from "./Animations/SideToSide";
 import {Fade} from "./Animations/Fade";
 import {BlinkNotification} from "./Notifications/BlinkNotification";
 import { CenterToSideNotification } from "./Notifications/CenterToSideNotification";
+import {ParameterParsingError} from "./Errors/ParameterParsingError";
+import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 
 const DOT = require("dotstar");
 const SPI = require("pi-spi");
@@ -82,7 +84,12 @@ API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
             let animation = new AnimationClass(parameters);            
             animationController.changeAnimation(animation);
         } catch (error) {
-            return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
+            if (error instanceof ParameterParsingError) {
+                return next(new ERRORS.BadRequestError(error.message));
+            }
+            if (error instanceof AnimationNotRunningError) {
+                return next(new ERRORS.ServiceUnavailableError(error.message));
+            }
         }
     } else {
         return next(new ERRORS.NotFoundError("Animation not found"));
@@ -103,7 +110,9 @@ API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => 
             try {
                 animationController.playNotification(new NotificationClass(notification))
             } catch (error) {
-                return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
+                if (error instanceof ParameterParsingError) {
+                    return next(new ERRORS.BadRequestError(error.message))
+                }
             }
         } else {
             return next(new ERRORS.NotFoundError("Notification not found"));
