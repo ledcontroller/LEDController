@@ -41,19 +41,21 @@ for(let i = 0; i < process.argv.length; i++) {
     }
 }
 
-const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
-const API_PORT = PARAMS["port"] || 1234;
-const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
-const LEDCOUNT = PARAMS["ledcount"] || 182;
-const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
-const API_NAME = PARAMS["apiname"] || "led_controller";
-const VERSION = "0.1.0"
+const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
+const API_PORT: number = PARAMS["port"] || 1234;
+const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
+const LEDCOUNT: number = PARAMS["ledcount"] || 182;
+const RASPISPI: string = PARAMS["spi"] || "/dev/spidev0.0";
+const API_NAME: string = PARAMS["apiname"] || "led_controller";
+const VERSION: string = "0.1.0"
+
+let uptime: number = new Date().getTime();
 
 const spi = SPI.initialize(RASPISPI);
 const strip = new DOT.Dotstar(spi, {
     length: LEDCOUNT
 });
-const animationController = new AnimationController(strip);
+const animationController: AnimationController = new AnimationController(strip);
 
 const API = RSF.createServer({
     name: "tisch-led-rasbi"
@@ -68,7 +70,7 @@ function checkToken(req, res, next): void {
 }
 
 function sendSuccess(res): void {
-    res.contentType = "json",
+    res.contentType = "json";
     res.send(200, {"status": 200, "message": "LEDs changed"});
 }
 
@@ -165,18 +167,33 @@ API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
 });
 
 API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
-    res.contentType = "json",
+    res.contentType = "json";
+    
+    // Get the name of the current Animation 
+    let currentAnimationName: string = "None";
+    if (animationController.running) {
+        for (let animation in ANIMATIONS) {
+            if (ANIMATIONS.hasOwnProperty(animation)) {
+                if (animationController.animation instanceof ANIMATIONS[animation]) {
+                    currentAnimationName = animation;
+                    break;
+                }
+            }
+        }
+    }
     res.send(200, {
         "status": 200, 
         "updates_per_second": animationController.ups,
         "running": animationController.running,
         "isPlayingNotification": animationController.isPlayingNotification,
-        "version": VERSION
+        "version": VERSION,
+        "uptime": new Date().getTime() - uptime,
+        "animation": currentAnimationName,
     });
     return next();
 });
 
-
+// Start on Application startup
 animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
