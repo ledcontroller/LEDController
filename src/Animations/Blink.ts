@@ -1,9 +1,9 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {IBlinkData} from "../Transferinterfaces/IBlinkData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class Blink implements IAnimation{
     colors: Array<IColor>;
@@ -21,7 +21,7 @@ export class Blink implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
         if (++this.frameCounter > this.activeTime) {
             this.frameCounter = 0;
             if (++this.curColor >= this.colors.length) this.curColor = 0;

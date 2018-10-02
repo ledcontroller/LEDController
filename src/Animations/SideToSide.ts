@@ -1,9 +1,9 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { ISideToSideData } from "../Transferinterfaces/ISideToSideData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class SideToSide implements IAnimation{
     colors: Array<IColor>;
@@ -23,7 +23,7 @@ export class SideToSide implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
 
         if (this.direction) {
             for (let i = this.border; i < this.border + this.ledsPreFrame && i <= this.ledcount; i++) {

@@ -1,14 +1,18 @@
 import {Led} from "./Led";
 import {IAnimation} from './IAnimation'
-import {Dotstar} from "dotstar";
 import {Static} from "./Animations/Static";
 import {INotification} from "./INotification";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
+import { IStripController } from "./IStripController";
+import { Blink } from "./Animations/Blink";
 
+/**
+ * AnimationController handles the playback of Animations and Notifications
+ */
 export class AnimationController {
-    animation: IAnimation = new Static({r: 0, g: 255, b: 0, a: 0.2});
+    animation: IAnimation = new Blink({ colors: [{r: 0, g: 255, b: 0, a: 0.2}], duration: 1000});
     leds: Array<Led> = [];
-    strip: Dotstar;
+    strip: IStripController;
     isPlayingNotification: boolean = false;
     notificationStack: Array<INotification> = [];
     afterNotificationAnimation: IAnimation;
@@ -16,15 +20,24 @@ export class AnimationController {
     ups: number;
     loop;
 
-    constructor(strip: Dotstar) {
+    /**
+     * AnimationController handles the playback of Animations and Notifications
+     * @param strip Strip Controller
+     */
+    constructor(strip: IStripController) {
         this.strip = strip;
 
         // Init LEDs
-        for (let i = 0; i < this.strip.length; i++) {
+        for (let i = 0; i < this.strip.getLength(); i++) {
             this.leds.push(new Led({r: 0, g: 0, b: 0, a: 0}));
         }
     }
 
+    /**
+     * Changes the Animation
+     * @param newAnimation New Animation ot be played
+     * @throws {AnimationNotRunningError} Animation loop must me running
+     */
     changeAnimation(newAnimation: IAnimation): void {
         if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.isPlayingNotification) {
@@ -34,6 +47,10 @@ export class AnimationController {
         }
     }
 
+    /**
+     * Stops the current Animation and plays the specified Notification
+     * @param notification Notification to be played
+     */
     playNotification(notification: INotification): void {
         if (this.isPlayingNotification) {
             this.notificationStack.push(notification);
@@ -57,10 +74,17 @@ export class AnimationController {
         this.isPlayingNotification = true;
     }
 
+    /**
+     * Calls the Animation/Notification update function
+     */
     update() {
         this.animation.update(this.leds, this.strip);
     }
 
+    /**
+     * Starts the Animation loop
+     * @param updatesPerSeconde Times the update function will be called per second
+     */
     start(updatesPerSeconde: number): void {
         if (!this.running) {
             this.ups = updatesPerSeconde;
@@ -69,15 +93,22 @@ export class AnimationController {
         }
     }
 
+    /**
+     * Stops the Animation loop
+     */
     stopUpdate(): void {
         clearInterval(this.loop);
         this.running = false;
     }
 
+    /**
+     * Clears LED-Strip and clears internal LED-Array
+     * All LEDs are set to white
+     */
     clearLEDs(): void {
         this.strip.clear();
-        for (let i = 0; i < this.strip.length; i++) {
-            this.leds.push(new Led({r: 0, g: 0, b: 0, a: 0}));
+        for (let i = 0; i < this.strip.getLength(); i++) {
+            this.leds.push(new Led({r: 0, g: 0, b: 0, a: 1}));
         }
         this.strip.sync();
     }

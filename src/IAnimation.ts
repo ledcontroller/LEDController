@@ -1,6 +1,6 @@
 import {Led} from "./Led";
-import {Dotstar} from "dotstar";
+import { IStripController } from "./IStripController";
 
 export interface IAnimation {
-    update(leds: Array<Led>, strip: Dotstar)
+    update(leds: Array<Led>, strip: IStripController)
 }

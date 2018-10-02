@@ -1,9 +1,9 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { ISideToCenterData } from "../Transferinterfaces/ISideToCenterData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class SideToCenter implements IAnimation{
     colors: Array<IColor>;
@@ -20,7 +20,7 @@ export class SideToCenter implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
 
         // Front
         for (let i = 0; i < this.border; i++) {

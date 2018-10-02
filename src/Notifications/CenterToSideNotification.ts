@@ -1,10 +1,9 @@
-import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
 import { ICenterToSideNotificationData } from "../Transferinterfaces/ICenterToSideNotificationData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class CenterToSideNotification implements INotification{
     colors: Array<IColor>;
@@ -28,7 +27,7 @@ export class CenterToSideNotification implements INotification{
         this.finishCallback = callback;
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
 
         // Front
         for (let i = this.centerLED; i < this.centerLED + this.border; i++) {
