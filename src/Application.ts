@@ -8,8 +8,9 @@ import {BlinkNotification} from "./Notifications/BlinkNotification";
 import { CenterToSideNotification } from "./Notifications/CenterToSideNotification";
 import {ParameterParsingError} from "./Errors/ParameterParsingError";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
+import { IStripController } from "./IStripController";
+import { DotstarController } from "./DotstarController";
 
-const DOT = require("dotstar");
 const SPI = require("pi-spi");
 const RSF = require("restify");
 const ERRORS = require('restify-errors');
@@ -52,7 +53,7 @@ const VERSION: string = "0.1.0"
 let uptime: number = new Date().getTime();
 
 const spi = SPI.initialize(RASPISPI);
-const strip = new DOT.Dotstar(spi, {
+const strip: IStripController = new DotstarController(spi,  {
     length: LEDCOUNT
 });
 const animationController: AnimationController = new AnimationController(strip);

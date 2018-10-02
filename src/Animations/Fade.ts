@@ -1,9 +1,9 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import { IFadeData } from "../Transferinterfaces/IFadeData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class Fade implements IAnimation{
     colors: Array<IColor>;
@@ -26,7 +26,7 @@ export class Fade implements IAnimation{
         this.calculateNextColorAndSteps();
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
 
         if (this.curFrame == this.smoothness) {
             this.curFrame = 0;

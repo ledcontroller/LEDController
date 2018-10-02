@@ -1,10 +1,9 @@
-import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
-import {Dotstar} from "dotstar";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
 import { IBlinkNotificationData } from "../Transferinterfaces/IBlinkNotificationData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
 
 export class BlinkNotification implements INotification{
     colors: Array<IColor>;
@@ -27,7 +26,7 @@ export class BlinkNotification implements INotification{
         this.finishCallback = callback;
     }
 
-    update(leds: Array<Led>, strip: Dotstar) {
+    update(leds: Array<Led>, strip: IStripController) {
         if (++this.frameCounter > this.activeTime) {
             this.frameCounter = 0;
             if (++this.curColor >= this.colors.length) {
