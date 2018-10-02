@@ -72,201 +72,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/process/browser.js":
-/*!*****************************************!*\
-  !*** ./node_modules/process/browser.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-
 /***/ "./src/AnimationController.ts":
 /*!************************************!*\
   !*** ./src/AnimationController.ts ***!
@@ -279,13 +84,13 @@ process.umask = function() { return 0; };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Led_1 = __webpack_require__(/*! ./Led */ "./src/Led.ts");
 const Static_1 = __webpack_require__(/*! ./Animations/Static */ "./src/Animations/Static.ts");
+const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
 class AnimationController {
     constructor(strip) {
         this.animation = new Static_1.Static({ r: 0, g: 255, b: 0, a: 0.2 });
         this.leds = [];
         this.isPlayingNotification = false;
         this.notificationStack = [];
-        this.resetSeconds = 10;
         this.strip = strip;
         // Init LEDs
         for (let i = 0; i < this.strip.length; i++) {
@@ -293,6 +98,8 @@ class AnimationController {
         }
     }
     changeAnimation(newAnimation) {
+        if (!this.running)
+            throw new AnimationNotRunningError_1.AnimationNotRunningError("Animationloop currently not running!");
         if (this.isPlayingNotification) {
             this.afterNotificationAnimation = newAnimation;
         }
@@ -311,7 +118,7 @@ class AnimationController {
             this.isPlayingNotification = false;
             // Play next Notification
             if (this.notificationStack.length > 0) {
-                this.playNotification(this.notificationStack.pop());
+                this.playNotification(this.notificationStack.shift());
                 return;
             }
             else {
@@ -323,36 +130,24 @@ class AnimationController {
     }
     update() {
         this.animation.update(this.leds, this.strip);
-        if (this.nextResetTime < new Date()) {
-            this.stopUpdate();
-            setTimeout(() => {
-                this.start(this.ups);
-                this.nextResetTime = new Date();
-                this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
-            }, 1000);
-        }
     }
     start(updatesPerSeconde) {
         if (!this.running) {
             this.ups = updatesPerSeconde;
             this.loop = setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
-            this.nextResetTime = new Date();
-            this.nextResetTime.setSeconds(this.nextResetTime.getSeconds() + this.resetSeconds);
         }
     }
     stopUpdate() {
         clearInterval(this.loop);
         this.running = false;
     }
-    turnoffLEDs() {
-        this.strip.off();
-    }
     clearLEDs() {
         this.strip.clear();
         for (let i = 0; i < this.strip.length; i++) {
             this.leds.push(new Led_1.Led({ r: 0, g: 0, b: 0, a: 0 }));
         }
+        this.strip.sync();
     }
 }
 exports.AnimationController = AnimationController;
@@ -370,6 +165,7 @@ exports.AnimationController = AnimationController;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class Blink {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -378,7 +174,7 @@ class Blink {
         this.activeTime = requestParameter.duration;
         this.frameCounter = requestParameter.duration; // Color gets set at first Update
         if (!(this.colors && this.activeTime && this.frameCounter)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     update(leds, strip) {
@@ -406,6 +202,7 @@ exports.Blink = Blink;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class CenterToSide {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -417,7 +214,7 @@ class CenterToSide {
         this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
         this.ledcount = requestParameter.ledCount;
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     update(leds, strip) {
@@ -453,6 +250,7 @@ exports.CenterToSide = CenterToSide;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class Fade {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -463,7 +261,7 @@ class Fade {
         this.steps = Math.round(requestParameter.duration / requestParameter.smoothness);
         this.smoothness = requestParameter.smoothness;
         if (!(this.colors && this.steps && this.smoothness)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
         this.calculateNextColorAndSteps();
     }
@@ -523,6 +321,7 @@ exports.Fade = Fade;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class SideToCenter {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -530,7 +329,7 @@ class SideToCenter {
         this.colors = requestParameter.colors;
         this.ledsPreFrame = Math.round((requestParameter.ledCount * 0.5) / requestParameter.duration);
         if (!(this.colors && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     update(leds, strip) {
@@ -568,6 +367,7 @@ exports.SideToCenter = SideToCenter;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class SideToSide {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -578,7 +378,7 @@ class SideToSide {
         this.ledsPreFrame = Math.round(requestParameter.ledCount / requestParameter.duration);
         this.ledcount = requestParameter.ledCount;
         if (!(this.colors && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     update(leds, strip) {
@@ -646,7 +446,7 @@ exports.Static = Static;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 Object.defineProperty(exports, "__esModule", { value: true });
 const AnimationController_1 = __webpack_require__(/*! ./AnimationController */ "./src/AnimationController.ts");
 const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
@@ -656,7 +456,8 @@ const SideToSide_1 = __webpack_require__(/*! ./Animations/SideToSide */ "./src/A
 const Fade_1 = __webpack_require__(/*! ./Animations/Fade */ "./src/Animations/Fade.ts");
 const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotification */ "./src/Notifications/BlinkNotification.ts");
 const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
-const HEAPDUMP = __webpack_require__(/*! heapdump */ "heapdump");
+const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
 const DOT = __webpack_require__(/*! dotstar */ "dotstar");
 const SPI = __webpack_require__(/*! pi-spi */ "pi-spi");
 const RSF = __webpack_require__(/*! restify */ "restify");
@@ -672,31 +473,28 @@ const NOTIFICATIONS = {
     "blink": BlinkNotification_1.BlinkNotification,
     "centertoside": CenterToSideNotification_1.CenterToSideNotification,
 };
+// Parameter parsing
 const PARAMS = {};
-for (let i = 2; i < process.argv.length; i++) {
-    process.argv[i];
-    let param = process.argv[i].substring(1, process.argv[i].length);
-    PARAMS[param.split("=")[0]] = param.split("=")[1];
+for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i].startsWith("-")) {
+        let param = process.argv[i].substring(1, process.argv[i].length);
+        let value = param.split("=")[1];
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            value = value.substring(1);
+            value = value.substr(0, value.length - 2);
+        }
+        PARAMS[param.split("=")[0]] = value;
+    }
 }
-/*
-    -token="asdf"
-    -port=1234
-    -ups=120
-    -ledcount=182
-    -spi=""
-*/
 const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
 const API_PORT = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
 const LEDCOUNT = PARAMS["ledcount"] || 182;
-const RASBISPI = PARAMS["spi"] || "/dev/spidev0.0";
-const spi = SPI.initialize(RASBISPI);
-class MySPI {
-    write(buffer, callback) {
-        callback(undefined, buffer);
-    }
-}
-//const spi = new MySPI();
+const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
+const API_NAME = PARAMS["apiname"] || "led_controller";
+const VERSION = "0.1.0";
+let uptime = new Date().getTime();
+const spi = SPI.initialize(RASPISPI);
 const strip = new DOT.Dotstar(spi, {
     length: LEDCOUNT
 });
@@ -712,15 +510,10 @@ function checkToken(req, res, next) {
     return next(new ERRORS.UnauthorizedError("Wrong Token"));
 }
 function sendSuccess(res) {
-    res.contentType = "json",
-        res.send(200, { "status": 200, "message": "LEDs changed" });
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "LEDs changed" });
 }
-API.post("/tisch_leds/debug/heapdump", (req, res, next) => {
-    HEAPDUMP.writeSnapshot();
-    sendSuccess(res);
-    return next();
-});
-API.post("/tisch_leds/api/animations/*", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
     let path = req.route.path;
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
@@ -732,7 +525,12 @@ API.post("/tisch_leds/api/animations/*", checkToken, (req, res, next) => {
             animationController.changeAnimation(animation);
         }
         catch (error) {
-            return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
+            if (error instanceof ParameterParsingError_1.ParameterParsingError) {
+                return next(new ERRORS.BadRequestError(error.message));
+            }
+            if (error instanceof AnimationNotRunningError_1.AnimationNotRunningError) {
+                return next(new ERRORS.ServiceUnavailableError(error.message));
+            }
         }
     }
     else {
@@ -741,7 +539,29 @@ API.post("/tisch_leds/api/animations/*", checkToken, (req, res, next) => {
     sendSuccess(res);
     return next();
 });
-API.post("/tisch_leds/api/notifications/*", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => {
+    for (let notification of req.body.notifications) {
+        notification.ledCount = LEDCOUNT;
+        //Get Animation Class and Initialize with Parameters from Request
+        let NotificationClass = NOTIFICATIONS[notification.effect];
+        if (NotificationClass) {
+            try {
+                animationController.playNotification(new NotificationClass(notification));
+            }
+            catch (error) {
+                if (error instanceof ParameterParsingError_1.ParameterParsingError) {
+                    return next(new ERRORS.BadRequestError(error.message));
+                }
+            }
+        }
+        else {
+            return next(new ERRORS.NotFoundError("Notification not found"));
+        }
+    }
+    sendSuccess(res);
+    return next();
+});
+API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) => {
     let path = req.route.path;
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
@@ -762,7 +582,7 @@ API.post("/tisch_leds/api/notifications/*", checkToken, (req, res, next) => {
     sendSuccess(res);
     return next();
 });
-API.post("/tisch_leds/api/start", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/start", checkToken, (req, res, next) => {
     if (req.body.update_per_second) {
         animationController.start(req.body.update_per_second);
     }
@@ -772,22 +592,99 @@ API.post("/tisch_leds/api/start", checkToken, (req, res, next) => {
     sendSuccess(res);
     return next();
 });
-API.post("/tisch_leds/api/stop", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
     animationController.stopUpdate();
     animationController.clearLEDs();
     sendSuccess(res);
     return next();
 });
+API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
+    res.contentType = "json";
+    // Get the name of the current Animation 
+    let currentAnimationName = "None";
+    if (animationController.running) {
+        for (let animation in ANIMATIONS) {
+            if (ANIMATIONS.hasOwnProperty(animation)) {
+                if (animationController.animation instanceof ANIMATIONS[animation]) {
+                    currentAnimationName = animation;
+                    break;
+                }
+            }
+        }
+    }
+    res.send(200, {
+        "status": 200,
+        "updates_per_second": animationController.ups,
+        "running": animationController.running,
+        "isPlayingNotification": animationController.isPlayingNotification,
+        "version": VERSION,
+        "uptime": new Date().getTime() - uptime,
+        "animation": currentAnimationName,
+    });
+    return next();
+});
+// Start on Application startup
 animationController.start(UPDATES_PER_SECOND);
 API.listen(API_PORT, function () {
-    console.log('LED-Controller listening on Port %s', API_PORT);
+    console.log('LED-Controller %s', VERSION);
+    console.log('Listening on Port %s', API_PORT);
+    console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
-    console.log('SPI path: %s', RASBISPI);
+    console.log('SPI path: %s', RASPISPI);
+});
+function exitApplication() {
+    strip.off();
+    spi.close();
+    console.log("Bye!");
+}
+process.on("SIGINT", () => exitApplication());
+process.on("SIGTERM", () => {
+    exitApplication();
+    process.exit(0);
 });
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/process/browser.js */ "./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./src/Errors/AnimationNotRunningError.js":
+/*!************************************************!*\
+  !*** ./src/Errors/AnimationNotRunningError.js ***!
+  \************************************************/
+/*! exports provided: AnimationNotRunningError */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationNotRunningError", function() { return AnimationNotRunningError; });
+class AnimationNotRunningError extends Error {
+    constructor(message) {
+        super(message);
+        this.code = "AnimationNotRunning";
+        Error.captureStackTrace(this, AnimationNotRunningError);
+    }
+}
+
+/***/ }),
+
+/***/ "./src/Errors/ParameterParsingError.js":
+/*!*********************************************!*\
+  !*** ./src/Errors/ParameterParsingError.js ***!
+  \*********************************************/
+/*! exports provided: ParameterParsingError */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ParameterParsingError", function() { return ParameterParsingError; });
+class ParameterParsingError extends Error {
+    constructor(message) {
+        super(message);
+        this.code = "ParsingError";
+        Error.captureStackTrace(this, ParameterParsingError);
+    }
+}
 
 /***/ }),
 
@@ -821,6 +718,7 @@ exports.Led = Led;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class BlinkNotification {
     constructor(requestParameter) {
         this.curColor = -1; // first run skips first color
@@ -829,7 +727,7 @@ class BlinkNotification {
         this.activeTime = requestParameter.duration;
         this.frameCounter = this.activeTime; // Color gets set at first Update
         if (!(this.colors && this.activeTime)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     attachDoneCallback(callback) {
@@ -862,6 +760,7 @@ exports.BlinkNotification = BlinkNotification;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class CenterToSideNotification {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -871,7 +770,7 @@ class CenterToSideNotification {
         this.centerLED = Math.round(requestParameter.ledCount * 0.5);
         this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
-            throw new Error("Wrong Parameter");
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     attachDoneCallback(callback) {
@@ -908,17 +807,6 @@ exports.CenterToSideNotification = CenterToSideNotification;
 /***/ (function(module, exports) {
 
 module.exports = require("dotstar");
-
-/***/ }),
-
-/***/ "heapdump":
-/*!***************************!*\
-  !*** external "heapdump" ***!
-  \***************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("heapdump");
 
 /***/ }),
 
