@@ -18,7 +18,7 @@ export class AnimationController {
     afterNotificationAnimation: IAnimation;
     running: boolean;
     ups: number;
-    loop;
+    loop: NodeJS.Timer;
 
     /**
      * AnimationController handles the playback of Animations and Notifications
@@ -88,7 +88,7 @@ export class AnimationController {
     start(updatesPerSeconde: number): void {
         if (!this.running) {
             this.ups = updatesPerSeconde;
-            this.loop = setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
+            this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
         }
     }
