@@ -9,6 +9,7 @@ const DOT = require("dotstar");
 export class DotstarController implements IStripController {
   
   dotstar: Dotstar;
+  spi;
   
   /**
    * Controller that takes all calls to a Dotstar-Strip and forwards them to the Library
@@ -17,6 +18,7 @@ export class DotstarController implements IStripController {
    */
   constructor(spi: any, options: any) {
     this.dotstar = new DOT.Dotstar(spi, options);
+    this.spi = spi;
   }
 
   /**
@@ -58,6 +60,12 @@ export class DotstarController implements IStripController {
    */
   off(): void {
     this.dotstar.off();
+  }
+  /**
+   * Shuts down all Strip-Controller relevant connections like spi
+   */
+  shutdown(): void {
+    this.spi.close();
   }
   /**
    * Returns the length of the LED-Strip

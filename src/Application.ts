@@ -11,7 +11,7 @@ import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
 import { DotstarController } from "./DotstarController";
 
-const SPI = require("pi-spi");
+//const SPI = require("pi-spi");
 const RSF = require("restify");
 const ERRORS = require('restify-errors');
 
@@ -33,7 +33,7 @@ const PARAMS = {}
 for(let i = 0; i < process.argv.length; i++) {
     if (process.argv[i].startsWith("-")) {
         let param = process.argv[i].substring(1, process.argv[i].length)
-        let value = param.split("=")[1];
+        let value = param.split("=")[1]; //check if null
         if (value.startsWith("\"") && value.endsWith("\"")) {
             value = value.substring(1);
             value = value.substr(0, value.length - 2);
@@ -46,7 +46,7 @@ const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs t
 const API_PORT: number = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
 const LEDCOUNT: number = PARAMS["ledcount"] || 182;
-const RASPISPI: string = PARAMS["spi"] || "/dev/spidev0.0";
+const RASPISPI: string = PARAMS["spi"] || "/dev/spidev0.0"; // get this into module form
 const API_NAME: string = PARAMS["apiname"] || "led_controller";
 const VERSION: string = "0.1.0"
 
@@ -209,12 +209,10 @@ API.listen(API_PORT, function() {
 
 function exitApplication() {
     strip.off();
-    spi.close();
+    strip.shutdown();
     console.log("Bye!");
+    process.exit(0);
 }
 
 process.on ("SIGINT", () => exitApplication());
-process.on ("SIGTERM", () => {
-    exitApplication();
-    process.exit(0);
-});
+process.on ("SIGTERM", () => exitApplication());

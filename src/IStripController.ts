@@ -5,5 +5,6 @@ export interface IStripController {
   clear(): void
   off(): void
 
+  shutdown(): void
   getLength(): number
 }
