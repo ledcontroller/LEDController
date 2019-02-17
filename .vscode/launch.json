@@ -8,7 +8,11 @@
       "type": "node",
       "request": "launch",
       "name": "Launch LED-Controller",
-      "program": "${workspaceFolder}/LED-Controller.js"
+      "program": "${workspaceFolder}/LED-Controller.js",
+      "args": [
+        "-stripcontroller=texttovideostripcontroller",
+        "-ledcount=40"
+      ]
     },
 
     {

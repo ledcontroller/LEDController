@@ -37,17 +37,32 @@
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -83,20 +98,32 @@
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const Led_1 = __webpack_require__(/*! ./Led */ "./src/Led.ts");
-const Static_1 = __webpack_require__(/*! ./Animations/Static */ "./src/Animations/Static.ts");
 const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
+const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
+/**
+ * AnimationController handles the playback of Animations and Notifications
+ */
 class AnimationController {
+    /**
+     * AnimationController handles the playback of Animations and Notifications
+     * @param strip Strip Controller
+     */
     constructor(strip) {
-        this.animation = new Static_1.Static({ r: 0, g: 255, b: 0, a: 0.2 });
+        this.animation = new Blink_1.Blink({ colors: [{ r: 0, g: 255, b: 0, a: 0.2 }], duration: 1000 });
         this.leds = [];
         this.isPlayingNotification = false;
         this.notificationStack = [];
         this.strip = strip;
         // Init LEDs
-        for (let i = 0; i < this.strip.length; i++) {
+        for (let i = 0; i < this.strip.getLength(); i++) {
             this.leds.push(new Led_1.Led({ r: 0, g: 0, b: 0, a: 0 }));
         }
     }
+    /**
+     * Changes the Animation
+     * @param newAnimation New Animation ot be played
+     * @throws {AnimationNotRunningError} Animation loop must me running
+     */
     changeAnimation(newAnimation) {
         if (!this.running)
             throw new AnimationNotRunningError_1.AnimationNotRunningError("Animationloop currently not running!");
@@ -107,6 +134,10 @@ class AnimationController {
             this.animation = newAnimation;
         }
     }
+    /**
+     * Stops the current Animation and plays the specified Notification
+     * @param notification Notification to be played
+     */
     playNotification(notification) {
         if (this.isPlayingNotification) {
             this.notificationStack.push(notification);
@@ -128,24 +159,38 @@ class AnimationController {
         this.animation = notification;
         this.isPlayingNotification = true;
     }
+    /**
+     * Calls the Animation/Notification update function
+     */
     update() {
         this.animation.update(this.leds, this.strip);
     }
+    /**
+     * Starts the Animation loop
+     * @param updatesPerSeconde Times the update function will be called per second
+     */
     start(updatesPerSeconde) {
         if (!this.running) {
             this.ups = updatesPerSeconde;
-            this.loop = setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
+            this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
         }
     }
+    /**
+     * Stops the Animation loop
+     */
     stopUpdate() {
         clearInterval(this.loop);
         this.running = false;
     }
+    /**
+     * Clears LED-Strip and clears internal LED-Array
+     * All LEDs are set to white
+     */
     clearLEDs() {
         this.strip.clear();
-        for (let i = 0; i < this.strip.length; i++) {
-            this.leds.push(new Led_1.Led({ r: 0, g: 0, b: 0, a: 0 }));
+        for (let i = 0; i < this.strip.getLength(); i++) {
+            this.leds.push(new Led_1.Led({ r: 0, g: 0, b: 0, a: 1 }));
         }
         this.strip.sync();
     }
@@ -414,30 +459,6 @@ exports.SideToSide = SideToSide;
 
 /***/ }),
 
-/***/ "./src/Animations/Static.ts":
-/*!**********************************!*\
-  !*** ./src/Animations/Static.ts ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-class Static {
-    constructor(color) {
-        this.color = color;
-    }
-    update(leds, strip) {
-        strip.all(this.color.r, this.color.g, this.color.b, this.color.a);
-        strip.sync();
-    }
-}
-exports.Static = Static;
-
-
-/***/ }),
-
 /***/ "./src/Application.ts":
 /*!****************************!*\
   !*** ./src/Application.ts ***!
@@ -458,8 +479,6 @@ const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotific
 const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
 const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
-const DOT = __webpack_require__(/*! dotstar */ "dotstar");
-const SPI = __webpack_require__(/*! pi-spi */ "pi-spi");
 const RSF = __webpack_require__(/*! restify */ "restify");
 const ERRORS = __webpack_require__(/*! restify-errors */ "restify-errors");
 const ANIMATIONS = {
@@ -478,7 +497,7 @@ const PARAMS = {};
 for (let i = 0; i < process.argv.length; i++) {
     if (process.argv[i].startsWith("-")) {
         let param = process.argv[i].substring(1, process.argv[i].length);
-        let value = param.split("=")[1];
+        let value = param.split("=")[1]; //check if null
         if (value.startsWith("\"") && value.endsWith("\"")) {
             value = value.substring(1);
             value = value.substr(0, value.length - 2);
@@ -486,21 +505,36 @@ for (let i = 0; i < process.argv.length; i++) {
         PARAMS[param.split("=")[0]] = value;
     }
 }
+PARAMS["ledcount"] = PARAMS["ledcount"] || 182;
+const LEDCOUNT = PARAMS["ledcount"];
 const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
 const API_PORT = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
-const LEDCOUNT = PARAMS["ledcount"] || 182;
-const RASPISPI = PARAMS["spi"] || "/dev/spidev0.0";
 const API_NAME = PARAMS["apiname"] || "led_controller";
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
+const STRIPCONTROLLER = PARAMS["stripcontroller"] || "TextToVideoStripController";
 let uptime = new Date().getTime();
-const spi = SPI.initialize(RASPISPI);
-const strip = new DOT.Dotstar(spi, {
-    length: LEDCOUNT
-});
+//Load the controller and create a instance
+let strip;
+try {
+    const stripcontrollerClass = require(STRIPCONTROLLER.toLowerCase()).default;
+    strip = new stripcontrollerClass(PARAMS);
+}
+catch (error) {
+    if (error.hasOwnProperty("type")) {
+        if (error.type === "parameter") {
+            console.error(error.message);
+        }
+    }
+    else {
+        console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
+    }
+    console.error(error);
+    process.exit(1);
+}
 const animationController = new AnimationController_1.AnimationController(strip);
 const API = RSF.createServer({
-    name: "tisch-led-rasbi"
+    name: "localhost"
 });
 API.use(RSF.plugins.bodyParser());
 function checkToken(req, res, next) {
@@ -632,18 +666,15 @@ API.listen(API_PORT, function () {
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
-    console.log('SPI path: %s', RASPISPI);
 });
 function exitApplication() {
     strip.off();
-    spi.close();
+    strip.shutdown();
     console.log("Bye!");
+    process.exit(0);
 }
 process.on("SIGINT", () => exitApplication());
-process.on("SIGTERM", () => {
-    exitApplication();
-    process.exit(0);
-});
+process.on("SIGTERM", () => exitApplication());
 
 
 /***/ }),
@@ -796,28 +827,6 @@ class CenterToSideNotification {
 }
 exports.CenterToSideNotification = CenterToSideNotification;
 
-
-/***/ }),
-
-/***/ "dotstar":
-/*!**************************!*\
-  !*** external "dotstar" ***!
-  \**************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("dotstar");
-
-/***/ }),
-
-/***/ "pi-spi":
-/*!*************************!*\
-  !*** external "pi-spi" ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("pi-spi");
 
 /***/ }),
 
