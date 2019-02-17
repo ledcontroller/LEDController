@@ -9,9 +9,7 @@ import { CenterToSideNotification } from "./Notifications/CenterToSideNotificati
 import {ParameterParsingError} from "./Errors/ParameterParsingError";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
-import { DotstarController } from "./DotstarController";
 
-//const SPI = require("pi-spi");
 const RSF = require("restify");
 const ERRORS = require('restify-errors');
 
@@ -42,24 +40,40 @@ for(let i = 0; i < process.argv.length; i++) {
     }
 }
 
+PARAMS["ledcount"] = PARAMS["ledcount"] || 182; 
+const LEDCOUNT: number = PARAMS["ledcount"];
+
 const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
 const API_PORT: number = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
-const LEDCOUNT: number = PARAMS["ledcount"] || 182;
-const RASPISPI: string = PARAMS["spi"] || "/dev/spidev0.0"; // get this into module form
 const API_NAME: string = PARAMS["apiname"] || "led_controller";
-const VERSION: string = "0.1.0"
+const VERSION: string = "0.2.0"
+const STRIPCONTROLLER: string = PARAMS["stripcontroller"] || "TextToVideoStripController";
 
 let uptime: number = new Date().getTime();
 
-const spi = SPI.initialize(RASPISPI);
-const strip: IStripController = new DotstarController(spi,  {
-    length: LEDCOUNT
-});
+//Load the controller and create a instance
+let strip: IStripController;
+try {
+    const stripcontrollerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
+    strip = new stripcontrollerClass(PARAMS);
+} catch (error) {
+    if (error.hasOwnProperty("type")) {
+        if (error.type === "parameter") {
+            console.error(error.message);
+        }
+    } else {
+        console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
+    }
+    console.error(error);
+
+    process.exit(1);
+}
+
 const animationController: AnimationController = new AnimationController(strip);
 
 const API = RSF.createServer({
-    name: "tisch-led-rasbi"
+    name: "localhost"
 });
 API.use(RSF.plugins.bodyParser());
 
@@ -204,7 +218,6 @@ API.listen(API_PORT, function() {
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
-    console.log('SPI path: %s', RASPISPI);
 });
 
 function exitApplication() {

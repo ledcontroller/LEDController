@@ -7,6 +7,9 @@ module.exports = function (env, arg) {
     mode: 'development',
     devtool: 'source-map',
     target: 'node',
+    node: {
+      __dirname: false
+    },
     module: {
       rules: [
         {
@@ -17,11 +20,8 @@ module.exports = function (env, arg) {
       ]
     },
     externals: {
-      'dotstar': 'commonjs dotstar',
-      'pi-spi': 'commonjs pi-spi',
       'restify': 'commonjs restify',
       'restify-errors': 'commonjs restify-errors',
-      'heapdump': 'commonjs heapdump'
     },
     plugins: [
       new webpack.BannerPlugin({ banner: '#!/usr/local/bin/node', raw: true })
