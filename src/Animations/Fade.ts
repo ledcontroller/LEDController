@@ -16,7 +16,7 @@ export class Fade implements IAnimation{
 
     constructor(requestParameter: IFadeData) {
         this.colors = requestParameter.colors;
-        this.steps = Math.round(requestParameter.duration / requestParameter.smoothness);
+        this.steps = Math.round(requestParameter.duration / requestParameter.smoothness) || 1; // Atleast 1 step
         this.smoothness = requestParameter.smoothness;
         
         if (!(this.colors && this.steps && this.smoothness)) {

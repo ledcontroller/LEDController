@@ -98,7 +98,6 @@
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const Led_1 = __webpack_require__(/*! ./Led */ "./src/Led.ts");
-const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
 const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
 /**
  * AnimationController handles the playback of Animations and Notifications
@@ -125,8 +124,7 @@ class AnimationController {
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
     changeAnimation(newAnimation) {
-        if (!this.running)
-            throw new AnimationNotRunningError_1.AnimationNotRunningError("Animationloop currently not running!");
+        //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.isPlayingNotification) {
             this.afterNotificationAnimation = newAnimation;
         }
@@ -303,7 +301,7 @@ class Fade {
         this.curStep = 0;
         this.curFrame = 0;
         this.colors = requestParameter.colors;
-        this.steps = Math.round(requestParameter.duration / requestParameter.smoothness);
+        this.steps = Math.round(requestParameter.duration / requestParameter.smoothness) || 1; // Atleast 1 step
         this.smoothness = requestParameter.smoothness;
         if (!(this.colors && this.steps && this.smoothness)) {
             throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
@@ -371,9 +369,10 @@ class SideToCenter {
     constructor(requestParameter) {
         this.curColor = 0;
         this.border = 0;
+        this.percBorder = 0;
         this.colors = requestParameter.colors;
-        this.ledsPreFrame = Math.round((requestParameter.ledCount * 0.5) / requestParameter.duration);
-        if (!(this.colors && this.ledsPreFrame)) {
+        this.ledsPerFrame = (requestParameter.ledCount * 0.5) / requestParameter.duration;
+        if (!(this.colors && this.ledsPerFrame)) {
             throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
@@ -383,14 +382,16 @@ class SideToCenter {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         // Back
-        for (let i = leds.length; i > leds.length - this.border; i--) {
+        for (let i = leds.length - 1; i > leds.length - this.border; i--) {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
-        this.border += this.ledsPreFrame;
+        this.percBorder += this.ledsPerFrame;
+        this.border = Math.round(this.percBorder);
         if (this.border > leds.length * 0.5) {
             //Fill Center LEDs too
             strip.all(this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
             this.border = 0;
+            this.percBorder = 0;
             if (++this.curColor >= this.colors.length)
                 this.curColor = 0;
         }
@@ -418,35 +419,40 @@ class SideToSide {
         this.curColor = 0;
         this.direction = true;
         this.border = 0;
+        this.percBorder = 0; // Used to calc LED Speeds below 0
         this.ledcount = 0;
         this.colors = requestParameter.colors;
-        this.ledsPreFrame = Math.round(requestParameter.ledCount / requestParameter.duration);
+        this.ledsPerFrame = requestParameter.ledCount / requestParameter.duration;
         this.ledcount = requestParameter.ledCount;
-        if (!(this.colors && this.ledsPreFrame)) {
+        if (!(this.colors && this.ledsPerFrame)) {
             throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
     }
     update(leds, strip) {
         if (this.direction) {
-            for (let i = this.border; i < this.border + this.ledsPreFrame && i <= this.ledcount; i++) {
+            for (let i = this.border; i < this.border + this.ledsPerFrame && i <= this.ledcount; i++) {
                 strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
             }
-            this.border += this.ledsPreFrame;
+            this.percBorder += this.ledsPerFrame;
+            this.border = Math.round(this.percBorder);
         }
         else {
-            for (let i = this.border; i > this.border - this.ledsPreFrame && i >= 0; i--) {
+            for (let i = this.border; i > this.border - this.ledsPerFrame && i >= 0; i--) {
                 strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
             }
-            this.border -= this.ledsPreFrame;
+            this.percBorder -= this.ledsPerFrame;
+            this.border = Math.round(this.percBorder);
         }
         if (this.border >= leds.length) {
             this.border = leds.length;
+            this.percBorder = leds.length;
             if (++this.curColor >= this.colors.length)
                 this.curColor = 0;
             this.direction = !this.direction;
         }
         else if (this.border <= 0) {
             this.border = 0;
+            this.percBorder = 0;
             if (++this.curColor >= this.colors.length)
                 this.curColor = 0;
             this.direction = !this.direction;
@@ -534,7 +540,7 @@ catch (error) {
 }
 const animationController = new AnimationController_1.AnimationController(strip);
 const API = RSF.createServer({
-    name: "localhost"
+    name: API_NAME
 });
 API.use(RSF.plugins.bodyParser());
 function checkToken(req, res, next) {

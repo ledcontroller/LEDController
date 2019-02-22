@@ -1,6 +1,5 @@
 import {Led} from "./Led";
 import {IAnimation} from './IAnimation'
-import {Static} from "./Animations/Static";
 import {INotification} from "./INotification";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
@@ -39,7 +38,7 @@ export class AnimationController {
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
     changeAnimation(newAnimation: IAnimation): void {
-        if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
+        //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.isPlayingNotification) {
             this.afterNotificationAnimation = newAnimation;
         } else {

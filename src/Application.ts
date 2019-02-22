@@ -73,7 +73,7 @@ try {
 const animationController: AnimationController = new AnimationController(strip);
 
 const API = RSF.createServer({
-    name: "localhost"
+    name: API_NAME
 });
 API.use(RSF.plugins.bodyParser());
 
