@@ -1,0 +1,39 @@
+@hostname = localhost
+@port = 1234
+@api = led_controller
+@token = SUPERSECRETCODE
+
+
+###
+POST http://{{hostname}}:{{port}}/{{api}}/api/animations/fade HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "{{token}}",
+  "animation": {
+    "duration": 120,
+    "smoothness": 4,
+    "colors": [
+      {"r": 255, "g": 20, "b": 0, "a": 1},
+      {"r": 0, "g": 255, "b": 0, "a": 1},
+      {"r": 0, "g": 0, "b": 255, "a": 1}
+    ]
+  }
+}
+
+###
+POST http://{{hostname}}:{{port}}/{{api}}/api/animations/centertoside HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "{{token}}",
+  "animation": {
+    "duration": 120,
+    "colors": [
+      {"r": 255, "g": 20, "b": 0, "a": 1},
+      {"r": 0, "g": 255, "b": 0, "a": 1},
+      {"r": 0, "g": 0, "b": 255, "a": 1}
+    ]
+  }
+}
+

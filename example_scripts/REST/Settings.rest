@@ -1,0 +1,30 @@
+@hostname = localhost
+@port = 1234
+@api = led_controller
+@token = SUPERSECRETCODE
+
+
+###  START                                                  
+POST http://{{hostname}}:{{port}}/{{api}}/api/start HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "{{token}}",
+  "update_per_second": 60
+}
+
+### STOP
+POST http://{{hostname}}:{{port}}/{{api}}/api/stop HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "{{token}}"
+}
+
+### STATUS
+POST http://{{hostname}}:{{port}}/{{api}}/api/status HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "{{token}}"
+}
