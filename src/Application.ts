@@ -30,7 +30,7 @@ const NOTIFICATIONS = {
 const PARAMS = {};
 for(let i = 0; i < process.argv.length; i++) {
     if (process.argv[i].startsWith("-")) {
-        let param = process.argv[i].substring(1, process.argv[i].length)
+        let param = process.argv[i].substring(1, process.argv[i].length);
         let value = param.split("=")[1]; //check if null
         if (value.startsWith("\"") && value.endsWith("\"")) {
             value = value.substring(1);
@@ -52,28 +52,51 @@ const STRIPCONTROLLER: string = PARAMS["stripcontroller"] || "TextToVideoStripCo
 
 let uptime: number = new Date().getTime();
 
+
+
+//
+//   LED setup
+//
+
 //Load the controller and create a instance
 let strip: IStripController = loadStripController();
 const animationController: AnimationController = new AnimationController(strip);
+
+
+
+//
+//   API init and middleware
+//
 
 const API = RSF.createServer({
     name: API_NAME
 });
 API.use(RSF.plugins.bodyParser());
 
-function checkToken(req, res, next): void {
-    if (req.body.token && req.body.token === TOKEN) {
-        return next();
+// Check if the token is used in basic authorization as password for user "token"
+API.use(RSF.plugins.authorizationParser());
+API.use((req, res, next) => {
+    // Skip for status
+    if (req.getPath().endsWith("status")) return next();
+    if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
+        return next(new ERRORS.UnauthorizedError("Wrong Token"));
     }
-    return next(new ERRORS.UnauthorizedError("Wrong Token"));
-}
+    return next();
+});
 
-function sendSuccess(res): void {
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "LEDs changed"});
-}
+// Simple logging
+API.on("InternalServer", (req, res, err, cb) => {
+    console.error(err);
+    cb();
+});
 
-API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
+
+
+//
+//   ENDPOINTS
+//
+
+API.post("/" + API_NAME + "/api/animations/*", (req, res, next) => {
     let path = req.route.path;
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
@@ -96,20 +119,23 @@ API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
         return next(new ERRORS.NotFoundError("Animation not found"));
     }
 
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, {"status": 200, "message": "Changed Animation"});
     return next();
 });
 
-
-API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/notification/", (req, res, next) => {
     for(let notification of req.body.notifications) {
         notification.ledCount = LEDCOUNT;
 
         //Get Animation Class and Initialize with Parameters from Request
         let NotificationClass = NOTIFICATIONS[notification.effect];
         if (NotificationClass) {
+            if (!notification.parameters) {
+                return next(new ERRORS.BadRequestError("No Parameters provided"));
+            }
             try {
-                animationController.playNotification(new NotificationClass(notification))
+                animationController.playNotification(new NotificationClass(notification.parameters))
             } catch (error) {
                 if (error instanceof ParameterParsingError) {
                     return next(new ERRORS.BadRequestError(error.message))
@@ -120,11 +146,12 @@ API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => 
         }
     }
 
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, {"status": 200, "message": "Added Notifications to queue"});
     return next();
 });
 
-API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/notifications/*", (req, res, next) => {
     let path = req.route.path;
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
@@ -142,30 +169,33 @@ API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) =
         return next(new ERRORS.NotFoundError("Notification not found"));
     }
 
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, {"status": 200, "message": "Added Notification to queue"});
     return next();
 });
 
-API.post("/" + API_NAME + "/api/start", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/start", (req, res, next) => {
     if (req.body.update_per_second) {
         animationController.start(req.body.update_per_second);
     } else {
         return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
     }
-    
-    sendSuccess(res);
+
+    res.contentType = "json";
+    res.send(200, {"status": 200, "message": "Started animation"});
     return next();
 });
 
-API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
+API.get("/" + API_NAME + "/api/stop", (req, res, next) => {
     animationController.stopUpdate();
     animationController.clearLEDs();
 
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, {"status": 200, "message": "Stopped animation"});
     return next();
 });
 
-API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
+API.get("/" + API_NAME + "/api/status", (req, res, next) => {
     res.contentType = "json";
     
     // Get the name of the current Animation 
@@ -192,7 +222,12 @@ API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
     return next();
 });
 
-// Start on Application startup
+
+
+//
+//   Application Start
+//
+
 animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
@@ -204,6 +239,12 @@ API.listen(API_PORT, function() {
     console.log('Number of LEDs: %s', LEDCOUNT);
 });
 
+
+
+//
+//   Helping Functions
+//
+
 function exitApplication() {
     strip.off();
     strip.shutdown();
@@ -213,8 +254,8 @@ function exitApplication() {
 
 function loadStripController() : IStripController {
     try {
-        const stripcontrollerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
-        return(new stripcontrollerClass(PARAMS));
+        const stripControllerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
+        return(new stripControllerClass(PARAMS));
     } catch (error) {
         if (error.hasOwnProperty("type")) {
             if (error.type === "parameter") {
