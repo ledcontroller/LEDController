@@ -10,13 +10,14 @@ export class CenterToSide implements IAnimation{
     curColor: number = 0;
     ledsPreFrame: number;
     border: number = 0;
+    persBorder: number = 0;
     centerLED: number = 0;
     ledcount: number = 0;
 
     constructor(requestParameter: ICenterToSideData) {
         this.colors = requestParameter.colors;
         this.centerLED = Math.round(requestParameter.ledCount * 0.5);
-        this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
+        this.ledsPreFrame = this.centerLED / requestParameter.duration;
         this.ledcount = requestParameter.ledCount;
 
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
@@ -35,10 +36,12 @@ export class CenterToSide implements IAnimation{
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
 
-        this.border += this.ledsPreFrame;
+        this.persBorder += this.ledsPreFrame;
+        this.border = Math.round(this.persBorder);
 
         if (this.border > leds.length * 0.5) {
             this.border = 0;
+            this.persBorder = 0;
             if (++this.curColor >= this.colors.length) this.curColor = 0;
         }
 

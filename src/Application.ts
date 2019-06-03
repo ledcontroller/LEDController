@@ -27,7 +27,7 @@ const NOTIFICATIONS = {
 };
 
 // Parameter parsing
-const PARAMS = {}
+const PARAMS = {};
 for(let i = 0; i < process.argv.length; i++) {
     if (process.argv[i].startsWith("-")) {
         let param = process.argv[i].substring(1, process.argv[i].length)
@@ -47,29 +47,13 @@ const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs t
 const API_PORT: number = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
 const API_NAME: string = PARAMS["apiname"] || "led_controller";
-const VERSION: string = "0.2.0"
+const VERSION: string = "0.2.0";
 const STRIPCONTROLLER: string = PARAMS["stripcontroller"] || "TextToVideoStripController";
 
 let uptime: number = new Date().getTime();
 
 //Load the controller and create a instance
-let strip: IStripController;
-try {
-    const stripcontrollerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
-    strip = new stripcontrollerClass(PARAMS);
-} catch (error) {
-    if (error.hasOwnProperty("type")) {
-        if (error.type === "parameter") {
-            console.error(error.message);
-        }
-    } else {
-        console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
-    }
-    console.error(error);
-
-    process.exit(1);
-}
-
+let strip: IStripController = loadStripController();
 const animationController: AnimationController = new AnimationController(strip);
 
 const API = RSF.createServer({
@@ -225,6 +209,24 @@ function exitApplication() {
     strip.shutdown();
     console.log("Bye!");
     process.exit(0);
+}
+
+function loadStripController() : IStripController {
+    try {
+        const stripcontrollerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
+        return(new stripcontrollerClass(PARAMS));
+    } catch (error) {
+        if (error.hasOwnProperty("type")) {
+            if (error.type === "parameter") {
+                console.error(error.message);
+            }
+        } else {
+            console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
+        }
+        console.error(error);
+    
+        process.exit(1);
+    }
 }
 
 process.on ("SIGINT", () => exitApplication());

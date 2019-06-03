@@ -11,7 +11,7 @@
       "program": "${workspaceFolder}/LED-Controller.js",
       "args": [
         "-stripcontroller=texttovideostripcontroller",
-        "-ledcount=40"
+        "-ledcount=20"
       ]
     },
 
