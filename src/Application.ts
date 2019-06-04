@@ -11,7 +11,8 @@ import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
 
 const RSF = require("restify");
-const ERRORS = require('restify-errors');
+const ERRORS = require("restify-errors");
+const FS = require("fs");
 
 const ANIMATIONS = {
     "blink": Blink,
@@ -43,12 +44,14 @@ for(let i = 0; i < process.argv.length; i++) {
 PARAMS["ledcount"] = PARAMS["ledcount"] || 182; 
 const LEDCOUNT: number = PARAMS["ledcount"];
 
-const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
+const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If https is used this is safe in my opinion
 const API_PORT: number = PARAMS["port"] || 1234;
 const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
 const API_NAME: string = PARAMS["apiname"] || "led_controller";
 const VERSION: string = "0.2.0";
 const STRIPCONTROLLER: string = PARAMS["stripcontroller"] || "TextToVideoStripController";
+const PRIVATEKEY: String = PARAMS["privatekey"];
+const PUBLICKEY: String = PARAMS["publickey"];
 
 let uptime: number = new Date().getTime();
 
@@ -68,9 +71,20 @@ const animationController: AnimationController = new AnimationController(strip);
 //   API init and middleware
 //
 
-const API = RSF.createServer({
-    name: API_NAME
-});
+// Check if cert is available and check if both keys are available
+const API_OPTIONS = { name: API_NAME };
+if (PRIVATEKEY || PUBLICKEY) {
+    if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
+        console.error("Private or Public Key couldn't be found");
+        process.exit(1);
+    }
+    API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
+    API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
+} else {
+    console.log("Using no certificate is not recommended");
+}
+
+const API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
 
 // Check if the token is used in basic authorization as password for user "token"
@@ -85,7 +99,7 @@ API.use((req, res, next) => {
 });
 
 // Simple logging
-API.on("InternalServer", (req, res, err, cb) => {
+API.on("Unauthorized", (req, res, err, cb) => {
     console.error(err);
     cb();
 });
@@ -246,10 +260,13 @@ API.listen(API_PORT, function() {
 //
 
 function exitApplication() {
-    strip.off();
-    strip.shutdown();
-    console.log("Bye!");
-    process.exit(0);
+    API.close(() => {
+        strip.off();
+        strip.shutdown(() => {
+            console.log("Bye!");
+            process.exit(0);
+        });
+    });
 }
 
 function loadStripController() : IStripController {
