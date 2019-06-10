@@ -1,7 +1,5 @@
 {
   "animation": {
-    "effekt": "sidetoside",
-    "data": {
       "duration": 1000,
       "colors": [
         {
@@ -23,6 +21,5 @@
           "a": 1
         }
       ]
-    }
   }
 }
