@@ -77,7 +77,7 @@ export class AnimationController {
      * Calls the Animation/Notification update function
      */
     update() {
-        this.animation.update(this.leds, this.strip);
+        this.animation.update(this.leds, this.strip, this.afterNotificationAnimation);
     }
 
     /**
