@@ -9,22 +9,26 @@ import { CenterToSideNotification } from "./Notifications/CenterToSideNotificati
 import {ParameterParsingError} from "./Errors/ParameterParsingError";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
+import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
 
 const RSF = require("restify");
 const ERRORS = require("restify-errors");
 const FS = require("fs");
 
+// Loads the default Animations
 const ANIMATIONS = {
     "blink": Blink,
     "sidetocenter": SideToCenter,
     "centertoside": CenterToSide,
     "sidetoside": SideToSide,
-    "fade": Fade
+    "fade": Fade,
 };
 
+// Loads the default Notifications
 const NOTIFICATIONS = {
     "blink": BlinkNotification,
     "centertoside": CenterToSideNotification,
+    "rippletocenter": RippleToCenterNotification,
 };
 
 // Parameter parsing
