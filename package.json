@@ -6,8 +6,8 @@
     "build": "webpack"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/led-controller/LEDController.git"
+    "type": "git",
+    "url": "https://github.com/led-controller/LEDController.git"
   },
   "dependencies": {
     "@types/node": "^11.13.22",
