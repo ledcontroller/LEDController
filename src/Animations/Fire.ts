@@ -1,0 +1,48 @@
+import {IAnimation} from "../IAnimation";
+import {Led} from "../Led";
+import {IColor} from "../IColor";
+import {IFireData} from "../Transferinterfaces/IFireData";
+import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { IStripController } from "../IStripController";
+
+export class Fire implements IAnimation{
+    colors: Array<IColor>;
+    minFadeDuration: number;
+    maxFadeDuration: number;
+    pixelOntime: Array<number>;
+    ledcount: number;
+
+    constructor(requestParameter: IFireData) {
+        this.colors = requestParameter.colors;
+        this.maxFadeDuration = requestParameter.maxFadeDuration;
+        this.minFadeDuration = requestParameter.minFadeDuration;
+        this.ledcount = requestParameter.ledCount;
+
+        this.pixelOntime = new Array()
+        for (let i = 0; i < this.ledcount; i++) {
+            this.pixelOntime.push(0);
+        }
+        
+        if (!(this.colors && this.minFadeDuration && this.minFadeDuration)) {
+            throw new ParameterParsingError("Wrong parameter provided");
+        }
+    }
+
+    update(leds: Array<Led>, strip: IStripController) {
+        for (let i = 0; i < this.ledcount; i++) {
+            if (this.pixelOntime[i] <= 0) {
+                // change color
+                this.pixelOntime[i] = Math.round(this.minFadeDuration + (Math.random() * (this.maxFadeDuration - this.minFadeDuration)));
+
+                let color : IColor = this.colors[Math.round(Math.random() * (this.colors.length - 1))]
+                leds[i].color = color;
+
+                strip.set(i, color.r, color.g, color.b, color.a);
+            } else {
+                this.pixelOntime[i]--;
+            }
+        }
+    
+        strip.sync();
+    }
+}
