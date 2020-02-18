@@ -31,31 +31,21 @@ const NOTIFICATIONS = {
     "rippletocenter": RippleToCenterNotification,
 };
 
-// Parameter parsing
-const PARAMS = {};
-for(let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i].startsWith("-")) {
-        let param = process.argv[i].substring(1, process.argv[i].length);
-        let value = param.split("=")[1]; //check if null
-        if (value.startsWith("\"") && value.endsWith("\"")) {
-            value = value.substring(1);
-            value = value.substr(0, value.length - 2);
-        }
-        PARAMS[param.split("=")[0]] = value
-    }
-}
+const ARGUMENTS = parseArguments(process.argv);
 
-PARAMS["ledcount"] = PARAMS["ledcount"] || 182; 
-const LEDCOUNT: number = PARAMS["ledcount"];
+console.log(ARGUMENTS);
 
-const TOKEN: string = PARAMS["token"] || "SUPERSECRETCODE"; // If https is used this is safe in my opinion
-const API_PORT: number = PARAMS["port"] || 1234;
-const UPDATES_PER_SECOND: number = PARAMS["ups"] || 120;
-const API_NAME: string = PARAMS["apiname"] || "led_controller";
+ARGUMENTS["ledcount"] = ARGUMENTS["ledcount"] || 182;
+
+const LEDCOUNT: number = ARGUMENTS["ledcount"];
+const TOKEN: string = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super bad practice. A proper Token management needs to be implemented
+const API_PORT: number = ARGUMENTS["port"] || 1234;
+const UPDATES_PER_SECOND: number = ARGUMENTS["ups"] || 30;
+const API_NAME: string = ARGUMENTS["apiname"] || "led_controller";
 const VERSION: string = "0.2.0";
-const STRIPCONTROLLER: string = PARAMS["stripcontroller"] || "TextToVideoStripController";
-const PRIVATEKEY: String = PARAMS["privatekey"];
-const PUBLICKEY: String = PARAMS["publickey"];
+const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"] || "TextToVideoStripController";
+const PRIVATEKEY: string = ARGUMENTS["privatekey"];
+const PUBLICKEY: string = ARGUMENTS["publickey"];
 
 let uptime: number = new Date().getTime();
 
@@ -288,7 +278,52 @@ function loadStripController() : IStripController {
         console.error(error);
     
         process.exit(1);
+// parses Arguments
+function parseArguments(commandlineArguments : Array<string>) : any {
+    let args : any = {};
+    for(let i = 0; i < commandlineArguments.length; i++) {
+        if (commandlineArguments[i].startsWith("--")) {
+            let argName : string = commandlineArguments[i].substring(2, commandlineArguments[i].length); //remove "-"
+            let argNameLength : number = argName.length;
+            if (argNameLength > 0) {
+                // check if parameters for argument are provided
+                if (i + 1 < commandlineArguments.length) {
+                    let param : string = commandlineArguments[i + 1];
+                    if (param[0] === "-") {
+                        // single option
+                        args[argName] = true;
+                    } else {
+                        // argument with parameter
+
+                        // check if argument is split by spaces
+                        if (param.startsWith("'") || param.startsWith('"')) {
+                            // Parameter escaped
+                            // search for end
+                            param = param.substring(1, param.length);
+                            for (let j : number = i; i < commandlineArguments.length; i++) {
+                                let searchingArgu : string = commandlineArguments[j];
+                                if (searchingArgu.endsWith("'") || searchingArgu.endsWith('"')) {
+                                    param = param.concat(searchingArgu.substring(0, searchingArgu.length - 1));
+                                    i = j; // Set i to the end of the arguments option
+                                    break;
+                                } else {
+                                    param = param.concat(searchingArgu);
+                                }
+                            }
+                        } 
+                        
+                        // Parameter not escaped
+                        args[argName] = param;
+                        i++; // Advance i to skip the parameter
+                    }
+                } else {
+                    // no more arguments so this has to be an option
+                    args[argName] = true;
+                }
+            }
+        }
     }
+    return args;
 }
 
 process.on ("SIGINT", () => exitApplication());
