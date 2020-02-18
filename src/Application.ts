@@ -10,6 +10,7 @@ import {ParameterParsingError} from "./Errors/ParameterParsingError";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
 import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
+import { Fire } from "./Animations/Fire";
 
 const RSF = require("restify");
 const ERRORS = require("restify-errors");
@@ -22,6 +23,7 @@ const ANIMATIONS = {
     "centertoside": CenterToSide,
     "sidetoside": SideToSide,
     "fade": Fade,
+    "fire": Fire,
 };
 
 // Loads the default Notifications
@@ -56,9 +58,8 @@ let uptime: number = new Date().getTime();
 //
 
 //Load the controller and create a instance
-let strip: IStripController = loadStripController();
+let strip: IStripController = instantiateStripController(STRIPCONTROLLER);
 const animationController: AnimationController = new AnimationController(strip);
-
 
 
 //
@@ -66,7 +67,7 @@ const animationController: AnimationController = new AnimationController(strip);
 //
 
 // Check if cert is available and check if both keys are available
-const API_OPTIONS = { name: API_NAME };
+const API_OPTIONS : any = { name: API_NAME };
 if (PRIVATEKEY || PUBLICKEY) {
     if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
         console.error("Private or Public Key couldn't be found");
@@ -85,7 +86,7 @@ API.use(RSF.plugins.bodyParser());
 API.use(RSF.plugins.authorizationParser());
 API.use((req, res, next) => {
     // Skip for status
-    if (req.getPath().endsWith("status")) return next();
+    if (req.getPath().endsWith("/status")) return next();
     if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
         return next(new ERRORS.UnauthorizedError("Wrong Token"));
     }
@@ -253,31 +254,38 @@ API.listen(API_PORT, function() {
 //   Helping Functions
 //
 
-function exitApplication() {
-    API.close(() => {
-        strip.off();
-        strip.shutdown(() => {
-            console.log("Bye!");
-            process.exit(0);
+function exitApplication() : void {
+    if (API != null) {
+        API.close(() => {
+            strip.off();
+            strip.shutdown(() => {
+                console.log("Bye!");
+                process.exit(0);
+            });
         });
-    });
+    } else {
+        console.log("Bye!");
+        process.exit(0);
+    }
 }
 
-function loadStripController() : IStripController {
+function instantiateStripController(controllerModuleName : string) : IStripController {
     try {
-        const stripControllerClass = __non_webpack_require__(STRIPCONTROLLER.toLowerCase()).default;
-        return(new stripControllerClass(PARAMS));
+        const stripControllerClass : any = __non_webpack_require__(controllerModuleName.toLowerCase()).default;
+        return(new stripControllerClass(ARGUMENTS));
     } catch (error) {
         if (error.hasOwnProperty("type")) {
             if (error.type === "parameter") {
                 console.error(error.message);
             }
         } else {
-            console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
+            console.error(`Couldn't find ${controllerModuleName} \n\t either it's not installed or you misspelled it`);
         }
-        console.error(error);
     
-        process.exit(1);
+        exitApplication();
+    }
+}
+
 // parses Arguments
 function parseArguments(commandlineArguments : Array<string>) : any {
     let args : any = {};
