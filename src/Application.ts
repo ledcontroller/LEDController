@@ -11,6 +11,7 @@ import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
 import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
 import { Fire } from "./Animations/Fire";
+import { Server, ServerOptions, createServer } from "restify";
 
 const RSF = require("restify");
 const ERRORS = require("restify-errors");
@@ -48,7 +49,7 @@ const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
 
 let uptime: number = new Date().getTime();
-let API : any;
+let API : Server;
 
 //
 //   LED setup
@@ -62,6 +63,8 @@ const animationController: AnimationController = new AnimationController(strip);
 //
 //   API init and middleware
 //
+const API_OPTIONS : ServerOptions = { name: API_NAME };
+
 
 // Check if cert is available and check if both keys are available
 if (PRIVATEKEY || PUBLICKEY) {
@@ -101,7 +104,7 @@ API.on("Unauthorized", (req, res, err, cb) => {
 //
 
 API.post("/" + API_NAME + "/api/animations/*", (req, res, next) => {
-    let path = req.route.path;
+    let path = req.getPath();
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
     parameters.ledCount = LEDCOUNT;
@@ -156,7 +159,7 @@ API.post("/" + API_NAME + "/api/notification/", (req, res, next) => {
 });
 
 API.post("/" + API_NAME + "/api/notifications/*", (req, res, next) => {
-    let path = req.route.path;
+    let path = req.getPath();
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
     parameters.ledCount = LEDCOUNT;
