@@ -268,6 +268,11 @@ function exitApplication() : void {
 }
 
 function instantiateStripController(controllerModuleName : string) : IStripController {
+    if (!(typeof controllerModuleName === "string")) {
+        console.error(`No Controllermodule supplied! Use the "stripcontroller" option to specify one`);
+        exitApplication();
+    }
+
     try {
         const stripControllerClass : any = __non_webpack_require__(controllerModuleName.toLowerCase()).default;
         return(new stripControllerClass(ARGUMENTS));
