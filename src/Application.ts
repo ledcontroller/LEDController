@@ -35,10 +35,8 @@ const NOTIFICATIONS = {
 
 const ARGUMENTS = parseArguments(process.argv);
 
-console.log(ARGUMENTS);
-
+// Default parameters
 ARGUMENTS["ledcount"] = ARGUMENTS["ledcount"] || 182;
-
 const LEDCOUNT: number = ARGUMENTS["ledcount"];
 const TOKEN: string = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super bad practice. A proper Token management needs to be implemented
 const API_PORT: number = ARGUMENTS["port"] || 1234;
@@ -50,8 +48,7 @@ const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
 
 let uptime: number = new Date().getTime();
-
-
+let API : any;
 
 //
 //   LED setup
@@ -67,11 +64,10 @@ const animationController: AnimationController = new AnimationController(strip);
 //
 
 // Check if cert is available and check if both keys are available
-const API_OPTIONS : any = { name: API_NAME };
 if (PRIVATEKEY || PUBLICKEY) {
     if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
         console.error("Private or Public Key couldn't be found");
-        process.exit(1);
+        exitApplication();
     }
     API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
     API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
@@ -79,7 +75,7 @@ if (PRIVATEKEY || PUBLICKEY) {
     console.log("Using no certificate is not recommended");
 }
 
-const API = RSF.createServer(API_OPTIONS);
+API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
 
 // Check if the token is used in basic authorization as password for user "token"
@@ -98,7 +94,6 @@ API.on("Unauthorized", (req, res, err, cb) => {
     console.error(err);
     cb();
 });
-
 
 
 //
@@ -255,7 +250,7 @@ API.listen(API_PORT, function() {
 //
 
 function exitApplication() : void {
-    if (API != null) {
+    if (API !== null) {
         API.close(() => {
             strip.off();
             strip.shutdown(() => {
