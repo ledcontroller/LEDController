@@ -288,8 +288,8 @@ function instantiateStripController(controllerModuleName : string) : IStripContr
 function parseArguments(commandlineArguments : Array<string>) : any {
     let args : any = {};
     for(let i = 0; i < commandlineArguments.length; i++) {
-        if (commandlineArguments[i].startsWith("--")) {
-            let argName : string = commandlineArguments[i].substring(2, commandlineArguments[i].length); //remove "-"
+        if (commandlineArguments[i].startsWith("-")) {
+            let argName : string = commandlineArguments[i].substring(1, commandlineArguments[i].length); //remove "-"
             let argNameLength : number = argName.length;
             if (argNameLength > 0) {
                 // check if parameters for argument are provided
