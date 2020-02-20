@@ -20,6 +20,26 @@
       "request": "launch",
       "name": "Launch Webpack",
       "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js"
+    },
+
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug LED-Controller",
+      "sourceMaps": true,
+      "stopOnEntry": false,
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": null,
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+          "run-script", "debug"
+      ],
+      "env": {
+          "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "port": 9229
     }
   ]
 }
