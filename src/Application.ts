@@ -1,3 +1,4 @@
+import { createCA, createDeviceCert, retrivePublicKey, retrivePrivateKey, certAvailable, caCertAvailable } from "./CertUtils";
 import {AnimationController} from "./AnimationController";
 import {Blink} from "./Animations/Blink";
 import {SideToCenter} from "./Animations/SideToCenter";
@@ -11,7 +12,7 @@ import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
 import { IStripController } from "./IStripController";
 import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
 import { Fire } from "./Animations/Fire";
-import { Server, ServerOptions, createServer } from "restify";
+import { Server, ServerOptions } from "restify";
 
 const RSF = require("restify");
 const ERRORS = require("restify-errors");
@@ -33,6 +34,11 @@ const NOTIFICATIONS = {
     "centertoside": CenterToSideNotification,
     "rippletocenter": RippleToCenterNotification,
 };
+const VERSION: string = "0.2.0";
+
+// Welcome
+console.log('LED-Controller %s', VERSION);
+console.log('by Lukas Sturm');
 
 const ARGUMENTS = parseArguments(process.argv);
 
@@ -43,7 +49,6 @@ const TOKEN: string = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super 
 const API_PORT: number = ARGUMENTS["port"] || 1234;
 const UPDATES_PER_SECOND: number = ARGUMENTS["ups"] || 30;
 const API_NAME: string = ARGUMENTS["apiname"] || "led_controller";
-const VERSION: string = "0.2.0";
 const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"] || "TextToVideoStripController";
 const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
@@ -68,6 +73,7 @@ const API_OPTIONS : ServerOptions = { name: API_NAME };
 
 // Check if cert is available and check if both keys are available
 if (PRIVATEKEY || PUBLICKEY) {
+    console.log("Using provided Certificate");
     if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
         console.error("Private or Public Key couldn't be found");
         exitApplication();
@@ -75,8 +81,42 @@ if (PRIVATEKEY || PUBLICKEY) {
     API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
     API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
 } else {
-    console.log("Using no certificate is not recommended");
+    console.log("Using selfsigned Certificate");
+
+    if (!caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
+        console.log("Generating certificate authority, this might take some time!");
+        try {    
+            createCA();
+        } catch (error) {
+            console.error("Error while generating certificate authority");
+            console.error(error.message);
+            exitApplication();
+        }
+    }
+
+    if (!certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
+        console.log("Generating device certificate, this might take some time!");
+        try {    
+            createDeviceCert(); 
+        } catch (error) {
+            console.error("Error while generating device certificate");
+            console.error(error.message);
+            exitApplication();
+        }
+    }
+
+    API_OPTIONS["key"] = retrivePrivateKey();
+    API_OPTIONS["certificate"] = retrivePublicKey();
 }
+
+
+// check if any certificate is loaded
+if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
+    console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
+    // More info
+    exitApplication();
+}
+
 
 API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
@@ -238,8 +278,7 @@ API.get("/" + API_NAME + "/api/status", (req, res, next) => {
 animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
-    console.log('LED-Controller %s', VERSION);
-    console.log('Listening on Port %s', API_PORT);
+    console.log('API listening on Port %s', API_PORT);
     console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
@@ -253,7 +292,7 @@ API.listen(API_PORT, function() {
 //
 
 function exitApplication() : void {
-    if (API !== null) {
+    if (API !== null && API !== undefined) {
         API.close(() => {
             strip.off();
             strip.shutdown(() => {
