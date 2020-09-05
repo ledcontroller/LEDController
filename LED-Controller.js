@@ -210,7 +210,7 @@ exports.AnimationController = AnimationController;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Blink = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class Blink {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -248,7 +248,7 @@ exports.Blink = Blink;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CenterToSide = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class CenterToSide {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -300,7 +300,7 @@ exports.CenterToSide = CenterToSide;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fade = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class Fade {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -372,7 +372,7 @@ exports.Fade = Fade;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fire = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class Fire {
     constructor(requestParameter) {
         this.colors = requestParameter.colors;
@@ -419,7 +419,7 @@ exports.Fire = Fire;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SideToCenter = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class SideToCenter {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -469,7 +469,7 @@ exports.SideToCenter = SideToCenter;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SideToSide = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class SideToSide {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -540,8 +540,8 @@ const SideToSide_1 = __webpack_require__(/*! ./Animations/SideToSide */ "./src/A
 const Fade_1 = __webpack_require__(/*! ./Animations/Fade */ "./src/Animations/Fade.ts");
 const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotification */ "./src/Notifications/BlinkNotification.ts");
 const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
-const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
-const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
+const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.ts");
 const RippleToCenterNotification_1 = __webpack_require__(/*! ./Notifications/RippleToCenterNotification */ "./src/Notifications/RippleToCenterNotification.ts");
 const Fire_1 = __webpack_require__(/*! ./Animations/Fire */ "./src/Animations/Fire.ts");
 const RSF = __webpack_require__(/*! restify */ "restify");
@@ -961,43 +961,47 @@ exports.caCertAvailable = caCertAvailable;
 
 /***/ }),
 
-/***/ "./src/Errors/AnimationNotRunningError.js":
+/***/ "./src/Errors/AnimationNotRunningError.ts":
 /*!************************************************!*\
-  !*** ./src/Errors/AnimationNotRunningError.js ***!
+  !*** ./src/Errors/AnimationNotRunningError.ts ***!
   \************************************************/
-/*! exports provided: AnimationNotRunningError */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationNotRunningError", function() { return AnimationNotRunningError; });
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnimationNotRunningError = void 0;
 class AnimationNotRunningError extends Error {
     constructor(message) {
         super(message);
-        this.code = "AnimationNotRunning";
         Error.captureStackTrace(this, AnimationNotRunningError);
     }
 }
+exports.AnimationNotRunningError = AnimationNotRunningError;
+
 
 /***/ }),
 
-/***/ "./src/Errors/ParameterParsingError.js":
+/***/ "./src/Errors/ParameterParsingError.ts":
 /*!*********************************************!*\
-  !*** ./src/Errors/ParameterParsingError.js ***!
+  !*** ./src/Errors/ParameterParsingError.ts ***!
   \*********************************************/
-/*! exports provided: ParameterParsingError */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ParameterParsingError", function() { return ParameterParsingError; });
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ParameterParsingError = void 0;
 class ParameterParsingError extends Error {
     constructor(message) {
         super(message);
-        this.code = "ParsingError";
         Error.captureStackTrace(this, ParameterParsingError);
     }
 }
+exports.ParameterParsingError = ParameterParsingError;
+
 
 /***/ }),
 
@@ -1033,7 +1037,7 @@ exports.Led = Led;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BlinkNotification = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class BlinkNotification {
     constructor(requestParameter) {
         this.curColor = -1; // first run skips first color
@@ -1076,7 +1080,7 @@ exports.BlinkNotification = BlinkNotification;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CenterToSideNotification = void 0;
-const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class CenterToSideNotification {
     constructor(requestParameter) {
         this.curColor = 0;
@@ -1126,6 +1130,7 @@ exports.CenterToSideNotification = CenterToSideNotification;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RippleToCenterNotification = void 0;
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
 class RippleToCenterNotification {
     constructor(requestParameter) {
         this.curCycle = 0;
@@ -1138,6 +1143,9 @@ class RippleToCenterNotification {
         this.ledsPerFrame = this.centerLED / requestParameter.cycleDuration;
         this.size = requestParameter.size || 10;
         this.keepAnimationRunning = requestParameter.keepAnimationRunning || false;
+        if (this.color === undefined) {
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
+        }
     }
     attachDoneCallback(doneCallback) {
         this.doneCallback = doneCallback;

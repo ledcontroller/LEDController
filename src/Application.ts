@@ -49,7 +49,7 @@ const TOKEN: string = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super 
 const API_PORT: number = ARGUMENTS["port"] || 1234;
 const UPDATES_PER_SECOND: number = ARGUMENTS["ups"] || 30;
 const API_NAME: string = ARGUMENTS["apiname"] || "led_controller";
-const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"] || "TextToVideoStripController";
+const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"];
 const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
 
