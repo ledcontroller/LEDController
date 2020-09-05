@@ -97,6 +97,7 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnimationController = void 0;
 const Led_1 = __webpack_require__(/*! ./Led */ "./src/Led.ts");
 const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
 /**
@@ -161,7 +162,7 @@ class AnimationController {
      * Calls the Animation/Notification update function
      */
     update() {
-        this.animation.update(this.leds, this.strip);
+        this.animation.update(this.leds, this.strip, this.afterNotificationAnimation);
     }
     /**
      * Starts the Animation loop
@@ -208,6 +209,7 @@ exports.AnimationController = AnimationController;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Blink = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class Blink {
     constructor(requestParameter) {
@@ -245,16 +247,18 @@ exports.Blink = Blink;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CenterToSide = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class CenterToSide {
     constructor(requestParameter) {
         this.curColor = 0;
         this.border = 0;
+        this.persBorder = 0;
         this.centerLED = 0;
         this.ledcount = 0;
         this.colors = requestParameter.colors;
         this.centerLED = Math.round(requestParameter.ledCount * 0.5);
-        this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
+        this.ledsPreFrame = this.centerLED / requestParameter.duration;
         this.ledcount = requestParameter.ledCount;
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
             throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
@@ -269,9 +273,11 @@ class CenterToSide {
         for (let i = this.centerLED; i > this.centerLED - this.border && i >= 0; i--) {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
-        this.border += this.ledsPreFrame;
+        this.persBorder += this.ledsPreFrame;
+        this.border = Math.round(this.persBorder);
         if (this.border > leds.length * 0.5) {
             this.border = 0;
+            this.persBorder = 0;
             if (++this.curColor >= this.colors.length)
                 this.curColor = 0;
         }
@@ -293,6 +299,7 @@ exports.CenterToSide = CenterToSide;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Fade = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class Fade {
     constructor(requestParameter) {
@@ -354,6 +361,53 @@ exports.Fade = Fade;
 
 /***/ }),
 
+/***/ "./src/Animations/Fire.ts":
+/*!********************************!*\
+  !*** ./src/Animations/Fire.ts ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Fire = void 0;
+const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
+class Fire {
+    constructor(requestParameter) {
+        this.colors = requestParameter.colors;
+        this.maxFadeDuration = requestParameter.maxFadeDuration;
+        this.minFadeDuration = requestParameter.minFadeDuration;
+        this.ledcount = requestParameter.ledCount;
+        this.pixelOntime = new Array();
+        for (let i = 0; i < this.ledcount; i++) {
+            this.pixelOntime.push(0);
+        }
+        if (!(this.colors && this.minFadeDuration && this.minFadeDuration)) {
+            throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
+        }
+    }
+    update(leds, strip) {
+        for (let i = 0; i < this.ledcount; i++) {
+            if (this.pixelOntime[i] <= 0) {
+                // change color
+                this.pixelOntime[i] = Math.round(this.minFadeDuration + (Math.random() * (this.maxFadeDuration - this.minFadeDuration)));
+                let color = this.colors[Math.round(Math.random() * (this.colors.length - 1))];
+                leds[i].color = color;
+                strip.set(i, color.r, color.g, color.b, color.a);
+            }
+            else {
+                this.pixelOntime[i]--;
+            }
+        }
+        strip.sync();
+    }
+}
+exports.Fire = Fire;
+
+
+/***/ }),
+
 /***/ "./src/Animations/SideToCenter.ts":
 /*!****************************************!*\
   !*** ./src/Animations/SideToCenter.ts ***!
@@ -364,6 +418,7 @@ exports.Fade = Fade;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SideToCenter = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class SideToCenter {
     constructor(requestParameter) {
@@ -413,6 +468,7 @@ exports.SideToCenter = SideToCenter;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SideToSide = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class SideToSide {
     constructor(requestParameter) {
@@ -475,6 +531,7 @@ exports.SideToSide = SideToSide;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const CertUtils_1 = __webpack_require__(/*! ./CertUtils */ "./src/CertUtils.ts");
 const AnimationController_1 = __webpack_require__(/*! ./AnimationController */ "./src/AnimationController.ts");
 const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
 const SideToCenter_1 = __webpack_require__(/*! ./Animations/SideToCenter */ "./src/Animations/SideToCenter.ts");
@@ -485,76 +542,119 @@ const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotific
 const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
 const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.js");
+const RippleToCenterNotification_1 = __webpack_require__(/*! ./Notifications/RippleToCenterNotification */ "./src/Notifications/RippleToCenterNotification.ts");
+const Fire_1 = __webpack_require__(/*! ./Animations/Fire */ "./src/Animations/Fire.ts");
 const RSF = __webpack_require__(/*! restify */ "restify");
 const ERRORS = __webpack_require__(/*! restify-errors */ "restify-errors");
+const FS = __webpack_require__(/*! fs */ "fs");
+// Loads the default Animations
 const ANIMATIONS = {
     "blink": Blink_1.Blink,
     "sidetocenter": SideToCenter_1.SideToCenter,
     "centertoside": CenterToSide_1.CenterToSide,
     "sidetoside": SideToSide_1.SideToSide,
-    "fade": Fade_1.Fade
+    "fade": Fade_1.Fade,
+    "fire": Fire_1.Fire,
 };
+// Loads the default Notifications
 const NOTIFICATIONS = {
     "blink": BlinkNotification_1.BlinkNotification,
     "centertoside": CenterToSideNotification_1.CenterToSideNotification,
+    "rippletocenter": RippleToCenterNotification_1.RippleToCenterNotification,
 };
-// Parameter parsing
-const PARAMS = {};
-for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i].startsWith("-")) {
-        let param = process.argv[i].substring(1, process.argv[i].length);
-        let value = param.split("=")[1]; //check if null
-        if (value.startsWith("\"") && value.endsWith("\"")) {
-            value = value.substring(1);
-            value = value.substr(0, value.length - 2);
-        }
-        PARAMS[param.split("=")[0]] = value;
-    }
-}
-PARAMS["ledcount"] = PARAMS["ledcount"] || 182;
-const LEDCOUNT = PARAMS["ledcount"];
-const TOKEN = PARAMS["token"] || "SUPERSECRETCODE"; // If noone sniffs the packets this is fine :]
-const API_PORT = PARAMS["port"] || 1234;
-const UPDATES_PER_SECOND = PARAMS["ups"] || 120;
-const API_NAME = PARAMS["apiname"] || "led_controller";
 const VERSION = "0.2.0";
-const STRIPCONTROLLER = PARAMS["stripcontroller"] || "TextToVideoStripController";
+// Welcome
+console.log('LED-Controller %s', VERSION);
+console.log('by Lukas Sturm');
+const ARGUMENTS = parseArguments(process.argv);
+// Default parameters
+ARGUMENTS["ledcount"] = ARGUMENTS["ledcount"] || 182;
+const LEDCOUNT = ARGUMENTS["ledcount"];
+const TOKEN = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super bad practice. A proper Token management needs to be implemented
+const API_PORT = ARGUMENTS["port"] || 1234;
+const UPDATES_PER_SECOND = ARGUMENTS["ups"] || 30;
+const API_NAME = ARGUMENTS["apiname"] || "led_controller";
+const STRIPCONTROLLER = ARGUMENTS["stripcontroller"] || "TextToVideoStripController";
+const PRIVATEKEY = ARGUMENTS["privatekey"];
+const PUBLICKEY = ARGUMENTS["publickey"];
 let uptime = new Date().getTime();
+let API;
+//
+//   LED setup
+//
 //Load the controller and create a instance
-let strip;
-try {
-    const stripcontrollerClass = require(STRIPCONTROLLER.toLowerCase()).default;
-    strip = new stripcontrollerClass(PARAMS);
+let strip = instantiateStripController(STRIPCONTROLLER);
+const animationController = new AnimationController_1.AnimationController(strip);
+//
+//   API init and middleware
+//
+const API_OPTIONS = { name: API_NAME };
+// Check if cert is available and check if both keys are available
+if (PRIVATEKEY || PUBLICKEY) {
+    console.log("Using provided Certificate");
+    if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
+        console.error("Private or Public Key couldn't be found");
+        exitApplication();
+    }
+    API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
+    API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
 }
-catch (error) {
-    if (error.hasOwnProperty("type")) {
-        if (error.type === "parameter") {
+else {
+    console.log("Using selfsigned Certificate");
+    if (!CertUtils_1.caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
+        console.log("Generating certificate authority, this might take some time!");
+        try {
+            CertUtils_1.createCA();
+        }
+        catch (error) {
+            console.error("Error while generating certificate authority");
             console.error(error.message);
+            exitApplication();
         }
     }
-    else {
-        console.error(`Couldn't find ${STRIPCONTROLLER} \n\t either it's not installed or you misspelled it`);
+    if (!CertUtils_1.certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
+        console.log("Generating device certificate, this might take some time!");
+        try {
+            CertUtils_1.createDeviceCert();
+        }
+        catch (error) {
+            console.error("Error while generating device certificate");
+            console.error(error.message);
+            exitApplication();
+        }
     }
-    console.error(error);
-    process.exit(1);
+    API_OPTIONS["key"] = CertUtils_1.retrivePrivateKey();
+    API_OPTIONS["certificate"] = CertUtils_1.retrivePublicKey();
 }
-const animationController = new AnimationController_1.AnimationController(strip);
-const API = RSF.createServer({
-    name: API_NAME
-});
+// check if any certificate is loaded
+if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
+    console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
+    // More info
+    exitApplication();
+}
+API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
-function checkToken(req, res, next) {
-    if (req.body.token && req.body.token === TOKEN) {
+// Check if the token is used in basic authorization as password for user "token"
+API.use(RSF.plugins.authorizationParser());
+API.use((req, res, next) => {
+    // Skip for status
+    if (req.getPath().endsWith("/status"))
         return next();
+    if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
+        return next(new ERRORS.UnauthorizedError("Wrong Token"));
     }
-    return next(new ERRORS.UnauthorizedError("Wrong Token"));
-}
-function sendSuccess(res) {
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "LEDs changed" });
-}
-API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
-    let path = req.route.path;
+    return next();
+});
+// Simple logging
+API.on("Unauthorized", (req, res, err, cb) => {
+    console.error(err);
+    cb();
+});
+//
+//   ENDPOINTS
+//
+API.post("/" + API_NAME + "/api/animations/*", (req, res, next) => {
+    let path = req.getPath();
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
     parameters.ledCount = LEDCOUNT;
@@ -576,17 +676,21 @@ API.post("/" + API_NAME + "/api/animations/*", checkToken, (req, res, next) => {
     else {
         return next(new ERRORS.NotFoundError("Animation not found"));
     }
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "Changed Animation" });
     return next();
 });
-API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/notification/", (req, res, next) => {
     for (let notification of req.body.notifications) {
         notification.ledCount = LEDCOUNT;
         //Get Animation Class and Initialize with Parameters from Request
         let NotificationClass = NOTIFICATIONS[notification.effect];
         if (NotificationClass) {
+            if (!notification.parameters) {
+                return next(new ERRORS.BadRequestError("No Parameters provided"));
+            }
             try {
-                animationController.playNotification(new NotificationClass(notification));
+                animationController.playNotification(new NotificationClass(notification.parameters));
             }
             catch (error) {
                 if (error instanceof ParameterParsingError_1.ParameterParsingError) {
@@ -598,11 +702,12 @@ API.post("/" + API_NAME + "/api/notification/", checkToken, (req, res, next) => 
             return next(new ERRORS.NotFoundError("Notification not found"));
         }
     }
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "Added Notifications to queue" });
     return next();
 });
-API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) => {
-    let path = req.route.path;
+API.post("/" + API_NAME + "/api/notifications/*", (req, res, next) => {
+    let path = req.getPath();
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
     parameters.ledCount = LEDCOUNT;
@@ -619,26 +724,29 @@ API.post("/" + API_NAME + "/api/notifications/*", checkToken, (req, res, next) =
     else {
         return next(new ERRORS.NotFoundError("Notification not found"));
     }
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "Added Notification to queue" });
     return next();
 });
-API.post("/" + API_NAME + "/api/start", checkToken, (req, res, next) => {
+API.post("/" + API_NAME + "/api/start", (req, res, next) => {
     if (req.body.update_per_second) {
         animationController.start(req.body.update_per_second);
     }
     else {
         return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
     }
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "Started animation" });
     return next();
 });
-API.post("/" + API_NAME + "/api/stop", checkToken, (req, res, next) => {
+API.get("/" + API_NAME + "/api/stop", (req, res, next) => {
     animationController.stopUpdate();
     animationController.clearLEDs();
-    sendSuccess(res);
+    res.contentType = "json";
+    res.send(200, { "status": 200, "message": "Stopped animation" });
     return next();
 });
-API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
+API.get("/" + API_NAME + "/api/status", (req, res, next) => {
     res.contentType = "json";
     // Get the name of the current Animation 
     let currentAnimationName = "None";
@@ -663,24 +771,192 @@ API.post("/" + API_NAME + "/api/status", checkToken, (req, res, next) => {
     });
     return next();
 });
-// Start on Application startup
+//
+//   Application Start
+//
 animationController.start(UPDATES_PER_SECOND);
 API.listen(API_PORT, function () {
-    console.log('LED-Controller %s', VERSION);
-    console.log('Listening on Port %s', API_PORT);
+    console.log('API listening on Port %s', API_PORT);
     console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
 });
+//
+//   Helping Functions
+//
 function exitApplication() {
-    strip.off();
-    strip.shutdown();
-    console.log("Bye!");
-    process.exit(0);
+    if (API !== null && API !== undefined) {
+        API.close(() => {
+            strip.off();
+            strip.shutdown(() => {
+                console.log("Bye!");
+                process.exit(0);
+            });
+        });
+    }
+    else {
+        console.log("Bye!");
+        process.exit(0);
+    }
+}
+function instantiateStripController(controllerModuleName) {
+    if (!(typeof controllerModuleName === "string")) {
+        console.error(`No Controllermodule supplied! Use the "stripcontroller" option to specify one`);
+        exitApplication();
+    }
+    try {
+        const stripControllerClass = require(controllerModuleName.toLowerCase()).default;
+        return (new stripControllerClass(ARGUMENTS));
+    }
+    catch (error) {
+        if (error.hasOwnProperty("type")) {
+            if (error.type === "parameter") {
+                console.error(error.message);
+            }
+        }
+        else {
+            console.error(`Couldn't find ${controllerModuleName} \n\t either it's not installed or you misspelled it`);
+        }
+        exitApplication();
+    }
+}
+// parses Arguments
+function parseArguments(commandlineArguments) {
+    let args = {};
+    for (let i = 0; i < commandlineArguments.length; i++) {
+        if (commandlineArguments[i].startsWith("-")) {
+            let argName = commandlineArguments[i].substring(1, commandlineArguments[i].length); //remove "-"
+            let argNameLength = argName.length;
+            if (argNameLength > 0) {
+                // check if parameters for argument are provided
+                if (i + 1 < commandlineArguments.length) {
+                    let param = commandlineArguments[i + 1];
+                    if (param[0] === "-") {
+                        // single option
+                        args[argName] = true;
+                    }
+                    else {
+                        // argument with parameter
+                        // check if argument is split by spaces
+                        if (param.startsWith("'") || param.startsWith('"')) {
+                            // Parameter escaped
+                            // search for end
+                            param = param.substring(1, param.length);
+                            for (let j = i; i < commandlineArguments.length; i++) {
+                                let searchingArgu = commandlineArguments[j];
+                                if (searchingArgu.endsWith("'") || searchingArgu.endsWith('"')) {
+                                    param = param.concat(searchingArgu.substring(0, searchingArgu.length - 1));
+                                    i = j; // Set i to the end of the arguments option
+                                    break;
+                                }
+                                else {
+                                    param = param.concat(searchingArgu);
+                                }
+                            }
+                        }
+                        // Parameter not escaped
+                        args[argName] = param;
+                        i++; // Advance i to skip the parameter
+                    }
+                }
+                else {
+                    // no more arguments so this has to be an option
+                    args[argName] = true;
+                }
+            }
+        }
+    }
+    return args;
 }
 process.on("SIGINT", () => exitApplication());
 process.on("SIGTERM", () => exitApplication());
+
+
+/***/ }),
+
+/***/ "./src/CertUtils.ts":
+/*!**************************!*\
+  !*** ./src/CertUtils.ts ***!
+  \**************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.caCertAvailable = exports.certAvailable = exports.retrivePublicKey = exports.retrivePrivateKey = exports.createCA = exports.createDeviceCert = void 0;
+const fs_1 = __webpack_require__(/*! fs */ "fs");
+const child_process_1 = __webpack_require__(/*! child_process */ "child_process");
+const path_1 = __webpack_require__(/*! path */ "path");
+const os_1 = __webpack_require__(/*! os */ "os");
+const certFolder = path_1.join(process.cwd(), "cert");
+/**
+ * @throws
+ */
+function createDeviceCert() {
+    child_process_1.execFileSync("./createDevice-Cert.sh", [os_1.hostname()], { cwd: certFolder, stdio: "inherit" });
+}
+exports.createDeviceCert = createDeviceCert;
+/**
+ * @throws
+ */
+function createCA() {
+    child_process_1.execFileSync("./createCA-Cert.sh", [os_1.hostname()], { cwd: certFolder, stdio: "inherit" });
+}
+exports.createCA = createCA;
+/**
+ * @returns Key as Buffer
+ */
+function retrivePrivateKey() {
+    return fs_1.readFileSync("./cert/device.key");
+}
+exports.retrivePrivateKey = retrivePrivateKey;
+/**
+ * @returns Cert as Buffer
+ */
+function retrivePublicKey() {
+    return fs_1.readFileSync("./cert/device.crt");
+}
+exports.retrivePublicKey = retrivePublicKey;
+/**
+ * @returns boolean whether device key and cert are available
+ */
+function certAvailable() {
+    if (fs_1.existsSync(certFolder)) {
+        if (fs_1.existsSync(path_1.join(certFolder, "device.crt")) && fs_1.existsSync(path_1.join(certFolder, "device.key"))) {
+            return true;
+        }
+        else {
+            console.log("No cert");
+        }
+    }
+    else {
+        fs_1.mkdirSync(certFolder);
+        console.log("no folder");
+    }
+    return false;
+}
+exports.certAvailable = certAvailable;
+/**
+ * @returns boolean whether ca key and cert are available
+ */
+function caCertAvailable() {
+    if (fs_1.existsSync(certFolder)) {
+        if (fs_1.existsSync(path_1.join(certFolder, "ca.crt")) && fs_1.existsSync(path_1.join(certFolder, "ca.key"))) {
+            return true;
+        }
+        else {
+            console.log("no ca");
+        }
+    }
+    else {
+        fs_1.mkdirSync(certFolder);
+        console.log("no folder");
+    }
+    return false;
+}
+exports.caCertAvailable = caCertAvailable;
 
 
 /***/ }),
@@ -735,6 +1011,7 @@ class ParameterParsingError extends Error {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Led = void 0;
 class Led {
     constructor(color) {
         this.color = color;
@@ -755,6 +1032,7 @@ exports.Led = Led;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BlinkNotification = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class BlinkNotification {
     constructor(requestParameter) {
@@ -797,6 +1075,7 @@ exports.BlinkNotification = BlinkNotification;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CenterToSideNotification = void 0;
 const ParameterParsingError_1 = __webpack_require__(/*! ../Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.js");
 class CenterToSideNotification {
     constructor(requestParameter) {
@@ -833,6 +1112,115 @@ class CenterToSideNotification {
 }
 exports.CenterToSideNotification = CenterToSideNotification;
 
+
+/***/ }),
+
+/***/ "./src/Notifications/RippleToCenterNotification.ts":
+/*!*********************************************************!*\
+  !*** ./src/Notifications/RippleToCenterNotification.ts ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RippleToCenterNotification = void 0;
+class RippleToCenterNotification {
+    constructor(requestParameter) {
+        this.curCycle = 0;
+        this.border = 0;
+        this.persBorder = 0;
+        this.color = requestParameter.color;
+        this.cycles = requestParameter.cycles || 4;
+        this.centerLED = Math.round(requestParameter.ledCount / 2);
+        this.amount = requestParameter.amount || 3;
+        this.ledsPerFrame = this.centerLED / requestParameter.cycleDuration;
+        this.size = requestParameter.size || 10;
+        this.keepAnimationRunning = requestParameter.keepAnimationRunning || false;
+    }
+    attachDoneCallback(doneCallback) {
+        this.doneCallback = doneCallback;
+    }
+    update(led, strip, animation) {
+        if (this.keepAnimationRunning) {
+            animation.update(led, strip, animation);
+        }
+        else {
+            strip.clear();
+        }
+        let curLed = 0;
+        let isRipple = false;
+        let curAmount = 0;
+        for (let i = this.border; i > 0; i--) {
+            // Switch leds off after x amount of leds have been lit
+            if (++curLed % this.size == 0) {
+                isRipple = !isRipple;
+                if (curAmount++ == this.amount + 1)
+                    break;
+            }
+            if (isRipple && i < this.centerLED) {
+                strip.set(i, this.color.r, this.color.g, this.color.b, this.color.a);
+                strip.set(strip.getLength() - i, this.color.r, this.color.g, this.color.b, this.color.a);
+            }
+        }
+        strip.sync();
+        this.persBorder += this.ledsPerFrame;
+        this.border = Math.round(this.persBorder);
+        if (this.border > this.centerLED + this.amount * this.size * 2 - this.size) {
+            this.persBorder = this.border = 0;
+            if (++this.curCycle == this.cycles) {
+                this.doneCallback();
+            }
+        }
+    }
+}
+exports.RippleToCenterNotification = RippleToCenterNotification;
+
+
+/***/ }),
+
+/***/ "child_process":
+/*!********************************!*\
+  !*** external "child_process" ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ "fs":
+/*!*********************!*\
+  !*** external "fs" ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ "os":
+/*!*********************!*\
+  !*** external "os" ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("os");
+
+/***/ }),
+
+/***/ "path":
+/*!***********************!*\
+  !*** external "path" ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("path");
 
 /***/ }),
 
