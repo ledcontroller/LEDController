@@ -1,9 +1,14 @@
-import {IAnimation} from "../IAnimation";
+import {IAnimation} from "../Interfaces/IAnimation";
 import {Led} from "../Led";
-import {IColor} from "../IColor";
-import { ICenterToSideData } from "../Transferinterfaces/ICenterToSideData";
+import {IColor} from "../Interfaces/IColor";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
+import {IStripController} from "../Interfaces/IStripController";
+
+interface ICenterToSideData {
+    ledCount: number,
+    duration: number,
+    colors: Array<IColor>
+}
 
 export class CenterToSide implements IAnimation{
     colors: Array<IColor>;

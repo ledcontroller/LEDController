@@ -9,7 +9,7 @@ import {BlinkNotification} from "./Notifications/BlinkNotification";
 import { CenterToSideNotification } from "./Notifications/CenterToSideNotification";
 import {ParameterParsingError} from "./Errors/ParameterParsingError";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
-import { IStripController } from "./IStripController";
+import { IStripController } from "./Interfaces/IStripController";
 import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
 import { Fire } from "./Animations/Fire";
 import { Server, ServerOptions } from "restify";

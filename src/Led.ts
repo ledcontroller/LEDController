@@ -1,4 +1,4 @@
-import {IColor} from "./IColor";
+import {IColor} from "./Interfaces/IColor";
 
 export class Led {
     color: IColor;

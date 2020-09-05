@@ -1,8 +1,8 @@
-import {IAnimation} from "../IAnimation";
+import {IAnimation} from "../Interfaces/IAnimation";
 import {Led} from "../Led";
-import {IColor} from "../IColor";
+import {IColor} from "../Interfaces/IColor";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../IStripController";
+import {IStripController} from "../Interfaces/IStripController";
 
 interface IFireData {
     ledCount: number,  

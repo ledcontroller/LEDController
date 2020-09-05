@@ -1,9 +1,9 @@
 import {Led} from "../Led";
-import {IColor} from "../IColor";
-import {INotification} from "../INotification";
+import {IColor} from "../Interfaces/IColor";
+import {INotification} from "../Interfaces/INotification";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
-import {IAnimation} from "../IAnimation";
+import { IStripController } from "../Interfaces/IStripController";
+import {IAnimation} from "../Interfaces/IAnimation";
 
 interface IRippleToCenterNotificationData {
     ledCount: number,

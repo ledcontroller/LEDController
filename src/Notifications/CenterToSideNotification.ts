@@ -1,8 +1,8 @@
 import {Led} from "../Led";
-import {IColor} from "../IColor";
-import {INotification} from "../INotification";
+import {IColor} from "../Interfaces/IColor";
+import {INotification} from "../Interfaces/INotification";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface ICenterToSideNotificationData {
     ledCount: number,

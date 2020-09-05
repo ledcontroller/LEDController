@@ -1,8 +1,8 @@
 import {Led} from "./Led";
-import {IAnimation} from './IAnimation'
-import {INotification} from "./INotification";
+import {IAnimation} from './Interfaces/IAnimation'
+import {INotification} from "./Interfaces/INotification";
 import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
-import { IStripController } from "./IStripController";
+import { IStripController } from "./Interfaces/IStripController";
 import { Blink } from "./Animations/Blink";
 
 /**
