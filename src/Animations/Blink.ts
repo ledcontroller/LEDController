@@ -1,9 +1,13 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
 import {IColor} from "../IColor";
-import {IBlinkData} from "../Transferinterfaces/IBlinkData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
+import {IStripController} from "../IStripController";
+
+interface IBlinkData {
+    duration: number,  // in Frames
+    colors: Array<IColor>
+}
 
 export class Blink implements IAnimation{
     colors: Array<IColor>;

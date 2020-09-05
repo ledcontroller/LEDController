@@ -1,9 +1,14 @@
 import {Led} from "../Led";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
-import { ICenterToSideNotificationData } from "../Transferinterfaces/ICenterToSideNotificationData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
 import { IStripController } from "../IStripController";
+
+interface ICenterToSideNotificationData {
+    ledCount: number,
+    duration: number,
+    colors: Array<IColor>
+}
 
 export class CenterToSideNotification implements INotification{
     colors: Array<IColor>;

@@ -1,9 +1,13 @@
 import {Led} from "../Led";
 import {IColor} from "../IColor";
 import {INotification} from "../INotification";
-import { IBlinkNotificationData } from "../Transferinterfaces/IBlinkNotificationData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
 import { IStripController } from "../IStripController";
+
+interface IBlinkNotificationData {
+    duration: number,
+    colors: Array<IColor>;
+}
 
 export class BlinkNotification implements INotification{
     colors: Array<IColor>;

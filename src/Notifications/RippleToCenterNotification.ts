@@ -3,8 +3,17 @@ import {IColor} from "../IColor";
 import {INotification} from "../INotification";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
 import { IStripController } from "../IStripController";
-import {IRippleToCenterNotificationData} from "../Transferinterfaces/IRippleToCenterNotificationData";
 import {IAnimation} from "../IAnimation";
+
+interface IRippleToCenterNotificationData {
+    ledCount: number,
+    cycleDuration: number,
+    cycles: number,
+    size: number,
+    amount: number,
+    color: IColor,
+    keepAnimationRunning: boolean
+}
 
 export class RippleToCenterNotification implements INotification {
     color: IColor;
@@ -27,6 +36,10 @@ export class RippleToCenterNotification implements INotification {
         this.ledsPerFrame = this.centerLED / requestParameter.cycleDuration;
         this.size = requestParameter.size || 10;
         this.keepAnimationRunning = requestParameter.keepAnimationRunning || false;
+
+        if (this.color === undefined) {
+            throw new ParameterParsingError("Wrong parameter provided");
+        }
     }
 
     public attachDoneCallback(doneCallback) {

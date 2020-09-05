@@ -1,9 +1,14 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
 import {IColor} from "../IColor";
-import { IFadeData } from "../Transferinterfaces/IFadeData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
+import {IStripController} from "../IStripController";
+
+interface IFadeData {
+    duration: number,  // in Frames
+    smoothness: number, // frames to skip while recalculation
+    colors: Array<IColor>
+}
 
 export class Fade implements IAnimation{
     colors: Array<IColor>;

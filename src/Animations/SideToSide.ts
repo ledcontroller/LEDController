@@ -1,9 +1,14 @@
 import {IAnimation} from "../IAnimation";
 import {Led} from "../Led";
 import {IColor} from "../IColor";
-import { ISideToSideData } from "../Transferinterfaces/ISideToSideData";
 import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import { IStripController } from "../IStripController";
+import {IStripController} from "../IStripController";
+
+interface ISideToSideData {
+    ledCount: number,
+    duration: number,
+    colors: Array<IColor>
+}
 
 export class SideToSide implements IAnimation{
     colors: Array<IColor>;
