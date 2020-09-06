@@ -318,12 +318,13 @@ function parseArguments(commandlineArguments : Array<string>) : any {
 
                         // check if argument is split by spaces
                         if (param.startsWith("'") || param.startsWith('"')) {
+                            let quoteChar: string = param[0];
                             // Parameter escaped
                             // search for end
                             param = param.substring(1, param.length);
                             for (let j : number = i; i < commandlineArguments.length; i++) {
                                 let searchingArgu : string = commandlineArguments[j];
-                                if (searchingArgu.endsWith("'") || searchingArgu.endsWith('"')) {
+                                if (searchingArgu.endsWith(quoteChar)) {
                                     param = param.concat(searchingArgu.substring(0, searchingArgu.length - 1));
                                     i = j; // Set i to the end of the arguments option
                                     break;

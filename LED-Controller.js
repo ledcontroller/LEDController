@@ -601,7 +601,7 @@ if (!USEHTTP) {
         API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
     }
     else {
-        console.error("No Certificate provided! \nUse -http to run the API without certificates");
+        console.error("No Certificate provided! \nUse -http to run the API without the need of certificates");
         exitApplication(); // User should be aware that he is not using a cert and the flag needs to be set by him
     }
 }
@@ -816,12 +816,13 @@ function parseArguments(commandlineArguments) {
                         // argument with parameter
                         // check if argument is split by spaces
                         if (param.startsWith("'") || param.startsWith('"')) {
+                            let quoteChar = param[0];
                             // Parameter escaped
                             // search for end
                             param = param.substring(1, param.length);
                             for (let j = i; i < commandlineArguments.length; i++) {
                                 let searchingArgu = commandlineArguments[j];
-                                if (searchingArgu.endsWith("'") || searchingArgu.endsWith('"')) {
+                                if (searchingArgu.endsWith(quoteChar)) {
                                     param = param.concat(searchingArgu.substring(0, searchingArgu.length - 1));
                                     i = j; // Set i to the end of the arguments option
                                     break;
