@@ -1,4 +1,3 @@
-import { createCA, createDeviceCert, retrivePublicKey, retrivePrivateKey, certAvailable, caCertAvailable } from "./CertUtils";
 import {AnimationController} from "./AnimationController";
 import {Blink} from "./Animations/Blink";
 import {SideToCenter} from "./Animations/SideToCenter";
@@ -83,44 +82,11 @@ if (!USEHTTP) {
         API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
         API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
     } else {
-        console.log("Using selfsigned Certificate");
-
-        if (!caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
-            console.log("Generating certificate authority, this might take some time!");
-            try {    
-                createCA();
-            } catch (error) {
-                console.error("Error while generating certificate authority");
-                console.error(error.message);
-                exitApplication();
-            }
-        }
-
-        if (!certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
-            console.log("Generating device certificate, this might take some time!");
-            try {    
-                createDeviceCert(); 
-            } catch (error) {
-                console.error("Error while generating device certificate");
-                console.error(error.message);
-                exitApplication();
-            }
-        }
-
-        API_OPTIONS["key"] = retrivePrivateKey();
-        API_OPTIONS["certificate"] = retrivePublicKey();
-    }
-
-
-    // check if any certificate is loaded
-    if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
-        console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
-        // More info
-        exitApplication();
+        console.error("No Certificate provided! \nUse -http to run the API without the need of certificates");
+        exitApplication(); // User should be aware that he is not using a cert and the flag needs to be set by him
     }
 } else {
-    console.log("Running in unsecure HTTP mode");
-    console.log("Consider using a certificate to encrypt API access");
+    console.warn("Running in unsecure HTTP mode \nConsider using a certificate to encrypt API access");
 }
 
 API = RSF.createServer(API_OPTIONS);
@@ -326,7 +292,7 @@ function instantiateStripController(controllerModuleName : string) : IStripContr
                 console.error(error.message);
             }
         } else {
-            console.error(`Couldn't find ${controllerModuleName} \n\t either it's not installed or you misspelled it`);
+            console.error(`Couldn't find ${controllerModuleName} either it's not installed or you misspelled it`);
         }
     
         exitApplication();

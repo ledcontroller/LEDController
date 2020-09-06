@@ -11,8 +11,8 @@ Authorization: Basic {{token}}
 
 {
   "animation": {
-    "duration": 120,
-    "smoothness": 4,
+    "duration": 30,
+    "smoothness": 1,
     "colors": [
       {"r": 255, "g": 20, "b": 0, "a": 0.5},
       {"r": 0, "g": 255, "b": 0, "a": 0.5},

@@ -531,7 +531,6 @@ exports.SideToSide = SideToSide;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const CertUtils_1 = __webpack_require__(/*! ./CertUtils */ "./src/CertUtils.ts");
 const AnimationController_1 = __webpack_require__(/*! ./AnimationController */ "./src/AnimationController.ts");
 const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
 const SideToCenter_1 = __webpack_require__(/*! ./Animations/SideToCenter */ "./src/Animations/SideToCenter.ts");
@@ -602,42 +601,12 @@ if (!USEHTTP) {
         API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
     }
     else {
-        console.log("Using selfsigned Certificate");
-        if (!CertUtils_1.caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
-            console.log("Generating certificate authority, this might take some time!");
-            try {
-                CertUtils_1.createCA();
-            }
-            catch (error) {
-                console.error("Error while generating certificate authority");
-                console.error(error.message);
-                exitApplication();
-            }
-        }
-        if (!CertUtils_1.certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
-            console.log("Generating device certificate, this might take some time!");
-            try {
-                CertUtils_1.createDeviceCert();
-            }
-            catch (error) {
-                console.error("Error while generating device certificate");
-                console.error(error.message);
-                exitApplication();
-            }
-        }
-        API_OPTIONS["key"] = CertUtils_1.retrivePrivateKey();
-        API_OPTIONS["certificate"] = CertUtils_1.retrivePublicKey();
-    }
-    // check if any certificate is loaded
-    if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
-        console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
-        // More info
-        exitApplication();
+        console.error("No Certificate provided! \nUse -http to run the API without certificates");
+        exitApplication(); // User should be aware that he is not using a cert and the flag needs to be set by him
     }
 }
 else {
-    console.log("Running in unsecure HTTP mode");
-    console.log("Consider using a certificate to encrypt API access");
+    console.warn("Running in unsecure HTTP mode \nConsider using a certificate to encrypt API access");
 }
 API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
@@ -823,7 +792,7 @@ function instantiateStripController(controllerModuleName) {
             }
         }
         else {
-            console.error(`Couldn't find ${controllerModuleName} \n\t either it's not installed or you misspelled it`);
+            console.error(`Couldn't find ${controllerModuleName} either it's not installed or you misspelled it`);
         }
         exitApplication();
     }
@@ -878,92 +847,6 @@ function parseArguments(commandlineArguments) {
 }
 process.on("SIGINT", () => exitApplication());
 process.on("SIGTERM", () => exitApplication());
-
-
-/***/ }),
-
-/***/ "./src/CertUtils.ts":
-/*!**************************!*\
-  !*** ./src/CertUtils.ts ***!
-  \**************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.caCertAvailable = exports.certAvailable = exports.retrivePublicKey = exports.retrivePrivateKey = exports.createCA = exports.createDeviceCert = void 0;
-const fs_1 = __webpack_require__(/*! fs */ "fs");
-const child_process_1 = __webpack_require__(/*! child_process */ "child_process");
-const path_1 = __webpack_require__(/*! path */ "path");
-const os_1 = __webpack_require__(/*! os */ "os");
-const certFolder = path_1.join(process.cwd(), "cert");
-/**
- * @throws
- */
-function createDeviceCert() {
-    child_process_1.execFileSync("./createDevice-Cert.sh", [os_1.hostname()], { cwd: certFolder, stdio: "inherit" });
-}
-exports.createDeviceCert = createDeviceCert;
-/**
- * @throws
- */
-function createCA() {
-    child_process_1.execFileSync("./createCA-Cert.sh", [os_1.hostname()], { cwd: certFolder, stdio: "inherit" });
-}
-exports.createCA = createCA;
-/**
- * @returns Key as Buffer
- */
-function retrivePrivateKey() {
-    return fs_1.readFileSync("./cert/device.key");
-}
-exports.retrivePrivateKey = retrivePrivateKey;
-/**
- * @returns Cert as Buffer
- */
-function retrivePublicKey() {
-    return fs_1.readFileSync("./cert/device.crt");
-}
-exports.retrivePublicKey = retrivePublicKey;
-/**
- * @returns boolean whether device key and cert are available
- */
-function certAvailable() {
-    if (fs_1.existsSync(certFolder)) {
-        if (fs_1.existsSync(path_1.join(certFolder, "device.crt")) && fs_1.existsSync(path_1.join(certFolder, "device.key"))) {
-            return true;
-        }
-        else {
-            console.log("No cert");
-        }
-    }
-    else {
-        fs_1.mkdirSync(certFolder);
-        console.log("no folder");
-    }
-    return false;
-}
-exports.certAvailable = certAvailable;
-/**
- * @returns boolean whether ca key and cert are available
- */
-function caCertAvailable() {
-    if (fs_1.existsSync(certFolder)) {
-        if (fs_1.existsSync(path_1.join(certFolder, "ca.crt")) && fs_1.existsSync(path_1.join(certFolder, "ca.key"))) {
-            return true;
-        }
-        else {
-            console.log("no ca");
-        }
-    }
-    else {
-        fs_1.mkdirSync(certFolder);
-        console.log("no folder");
-    }
-    return false;
-}
-exports.caCertAvailable = caCertAvailable;
 
 
 /***/ }),
@@ -1195,17 +1078,6 @@ exports.RippleToCenterNotification = RippleToCenterNotification;
 
 /***/ }),
 
-/***/ "child_process":
-/*!********************************!*\
-  !*** external "child_process" ***!
-  \********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("child_process");
-
-/***/ }),
-
 /***/ "fs":
 /*!*********************!*\
   !*** external "fs" ***!
@@ -1214,28 +1086,6 @@ module.exports = require("child_process");
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
-
-/***/ }),
-
-/***/ "os":
-/*!*********************!*\
-  !*** external "os" ***!
-  \*********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("os");
-
-/***/ }),
-
-/***/ "path":
-/*!***********************!*\
-  !*** external "path" ***!
-  \***********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("path");
 
 /***/ }),
 
