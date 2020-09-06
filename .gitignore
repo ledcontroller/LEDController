@@ -10,3 +10,5 @@ __pycache__/
 animation.txt
 
 certs/
+
+\.vscode
