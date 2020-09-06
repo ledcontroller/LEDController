@@ -574,9 +574,10 @@ const TOKEN = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super bad prac
 const API_PORT = ARGUMENTS["port"] || 1234;
 const UPDATES_PER_SECOND = ARGUMENTS["ups"] || 30;
 const API_NAME = ARGUMENTS["apiname"] || "led_controller";
-const STRIPCONTROLLER = ARGUMENTS["stripcontroller"] || "TextToVideoStripController";
+const STRIPCONTROLLER = ARGUMENTS["stripcontroller"];
 const PRIVATEKEY = ARGUMENTS["privatekey"];
 const PUBLICKEY = ARGUMENTS["publickey"];
+const USEHTTP = ARGUMENTS["http"];
 let uptime = new Date().getTime();
 let API;
 //
@@ -590,47 +591,53 @@ const animationController = new AnimationController_1.AnimationController(strip)
 //
 const API_OPTIONS = { name: API_NAME };
 // Check if cert is available and check if both keys are available
-if (PRIVATEKEY || PUBLICKEY) {
-    console.log("Using provided Certificate");
-    if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
-        console.error("Private or Public Key couldn't be found");
+if (!USEHTTP) {
+    if (PRIVATEKEY || PUBLICKEY) {
+        console.log("Using provided Certificate");
+        if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
+            console.error("Private or Public Key couldn't be found");
+            exitApplication();
+        }
+        API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
+        API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
+    }
+    else {
+        console.log("Using selfsigned Certificate");
+        if (!CertUtils_1.caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
+            console.log("Generating certificate authority, this might take some time!");
+            try {
+                CertUtils_1.createCA();
+            }
+            catch (error) {
+                console.error("Error while generating certificate authority");
+                console.error(error.message);
+                exitApplication();
+            }
+        }
+        if (!CertUtils_1.certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
+            console.log("Generating device certificate, this might take some time!");
+            try {
+                CertUtils_1.createDeviceCert();
+            }
+            catch (error) {
+                console.error("Error while generating device certificate");
+                console.error(error.message);
+                exitApplication();
+            }
+        }
+        API_OPTIONS["key"] = CertUtils_1.retrivePrivateKey();
+        API_OPTIONS["certificate"] = CertUtils_1.retrivePublicKey();
+    }
+    // check if any certificate is loaded
+    if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
+        console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
+        // More info
         exitApplication();
     }
-    API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
-    API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
 }
 else {
-    console.log("Using selfsigned Certificate");
-    if (!CertUtils_1.caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
-        console.log("Generating certificate authority, this might take some time!");
-        try {
-            CertUtils_1.createCA();
-        }
-        catch (error) {
-            console.error("Error while generating certificate authority");
-            console.error(error.message);
-            exitApplication();
-        }
-    }
-    if (!CertUtils_1.certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
-        console.log("Generating device certificate, this might take some time!");
-        try {
-            CertUtils_1.createDeviceCert();
-        }
-        catch (error) {
-            console.error("Error while generating device certificate");
-            console.error(error.message);
-            exitApplication();
-        }
-    }
-    API_OPTIONS["key"] = CertUtils_1.retrivePrivateKey();
-    API_OPTIONS["certificate"] = CertUtils_1.retrivePublicKey();
-}
-// check if any certificate is loaded
-if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
-    console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
-    // More info
-    exitApplication();
+    console.log("Running in unsecure HTTP mode");
+    console.log("Consider using a certificate to encrypt API access");
 }
 API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());

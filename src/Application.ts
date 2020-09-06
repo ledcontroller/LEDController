@@ -52,6 +52,7 @@ const API_NAME: string = ARGUMENTS["apiname"] || "led_controller";
 const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"];
 const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
+const USEHTTP: boolean = ARGUMENTS["http"];
 
 let uptime: number = new Date().getTime();
 let API : Server;
@@ -72,51 +73,55 @@ const API_OPTIONS : ServerOptions = { name: API_NAME };
 
 
 // Check if cert is available and check if both keys are available
-if (PRIVATEKEY || PUBLICKEY) {
-    console.log("Using provided Certificate");
-    if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
-        console.error("Private or Public Key couldn't be found");
+if (!USEHTTP) {
+    if (PRIVATEKEY || PUBLICKEY) {
+        console.log("Using provided Certificate");
+        if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
+            console.error("Private or Public Key couldn't be found");
+            exitApplication();
+        }
+        API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
+        API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
+    } else {
+        console.log("Using selfsigned Certificate");
+
+        if (!caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
+            console.log("Generating certificate authority, this might take some time!");
+            try {    
+                createCA();
+            } catch (error) {
+                console.error("Error while generating certificate authority");
+                console.error(error.message);
+                exitApplication();
+            }
+        }
+
+        if (!certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
+            console.log("Generating device certificate, this might take some time!");
+            try {    
+                createDeviceCert(); 
+            } catch (error) {
+                console.error("Error while generating device certificate");
+                console.error(error.message);
+                exitApplication();
+            }
+        }
+
+        API_OPTIONS["key"] = retrivePrivateKey();
+        API_OPTIONS["certificate"] = retrivePublicKey();
+    }
+
+
+    // check if any certificate is loaded
+    if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
+        console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
+        // More info
         exitApplication();
     }
-    API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
-    API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
 } else {
-    console.log("Using selfsigned Certificate");
-
-    if (!caCertAvailable() || ARGUMENTS["forcenewca"] || ARGUMENTS["fca"]) {
-        console.log("Generating certificate authority, this might take some time!");
-        try {    
-            createCA();
-        } catch (error) {
-            console.error("Error while generating certificate authority");
-            console.error(error.message);
-            exitApplication();
-        }
-    }
-
-    if (!certAvailable() || ARGUMENTS["forcenewcert"] || ARGUMENTS["fcert"]) {
-        console.log("Generating device certificate, this might take some time!");
-        try {    
-            createDeviceCert(); 
-        } catch (error) {
-            console.error("Error while generating device certificate");
-            console.error(error.message);
-            exitApplication();
-        }
-    }
-
-    API_OPTIONS["key"] = retrivePrivateKey();
-    API_OPTIONS["certificate"] = retrivePublicKey();
+    console.log("Running in unsecure HTTP mode");
+    console.log("Consider using a certificate to encrypt API access");
 }
-
-
-// check if any certificate is loaded
-if (API_OPTIONS["key"] === undefined || API_OPTIONS["key"] === "") {
-    console.error("No Certificate provided! \nIf you don't use a dynDNS you can use the \"selfsigned-cert\" option to create a Certificate");
-    // More info
-    exitApplication();
-}
-
 
 API = RSF.createServer(API_OPTIONS);
 API.use(RSF.plugins.bodyParser());
