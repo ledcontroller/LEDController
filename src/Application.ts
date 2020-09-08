@@ -47,7 +47,6 @@ const LEDCOUNT: number = ARGUMENTS["ledcount"];
 const TOKEN: string = ARGUMENTS["token"] || "SUPERSECRETCODE"; // This is super bad practice. A proper Token management needs to be implemented
 const API_PORT: number = ARGUMENTS["port"] || 1234;
 const UPDATES_PER_SECOND: number = ARGUMENTS["ups"] || 30;
-const API_NAME: string = ARGUMENTS["apiname"] || "led_controller";
 const STRIPCONTROLLER: string = ARGUMENTS["stripcontroller"];
 const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
@@ -68,7 +67,7 @@ const animationController: AnimationController = new AnimationController(strip);
 //
 //   API init and middleware
 //
-const API_OPTIONS : ServerOptions = { name: API_NAME };
+const API_OPTIONS : ServerOptions = {};
 
 
 // Check if cert is available and check if both keys are available
@@ -96,7 +95,7 @@ API.use(RSF.plugins.bodyParser());
 API.use(RSF.plugins.authorizationParser());
 API.use((req, res, next) => {
     // Skip for status
-    if (req.getPath().endsWith("/status")) return next();
+    // if (req.getPath().endsWith("/status")) return next();
     if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
         return next(new ERRORS.UnauthorizedError("Wrong Token"));
     }
@@ -114,7 +113,7 @@ API.on("Unauthorized", (req, res, err, cb) => {
 //   ENDPOINTS
 //
 
-API.post("/" + API_NAME + "/api/animations/*", (req, res, next) => {
+API.post("/api/v1/animations/*", (req, res, next) => {
     let path = req.getPath();
     let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.animation;
@@ -142,7 +141,7 @@ API.post("/" + API_NAME + "/api/animations/*", (req, res, next) => {
     return next();
 });
 
-API.post("/" + API_NAME + "/api/notification/", (req, res, next) => {
+API.post("/api/v1/notification/", (req, res, next) => {
     for(let notification of req.body.notifications) {
         notification.ledCount = LEDCOUNT;
 
@@ -169,7 +168,7 @@ API.post("/" + API_NAME + "/api/notification/", (req, res, next) => {
     return next();
 });
 
-API.post("/" + API_NAME + "/api/notifications/*", (req, res, next) => {
+API.post("/api/v1/notifications/*", (req, res, next) => {
     let path = req.getPath();
     let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
     let parameters = req.body.notification;
@@ -192,7 +191,7 @@ API.post("/" + API_NAME + "/api/notifications/*", (req, res, next) => {
     return next();
 });
 
-API.post("/" + API_NAME + "/api/start", (req, res, next) => {
+API.post("/api/v1/start", (req, res, next) => {
     if (req.body.update_per_second) {
         animationController.start(req.body.update_per_second);
     } else {
@@ -204,7 +203,7 @@ API.post("/" + API_NAME + "/api/start", (req, res, next) => {
     return next();
 });
 
-API.get("/" + API_NAME + "/api/stop", (req, res, next) => {
+API.get("/api/v1/stop", (req, res, next) => {
     animationController.stopUpdate();
     animationController.clearLEDs();
 
@@ -213,7 +212,7 @@ API.get("/" + API_NAME + "/api/stop", (req, res, next) => {
     return next();
 });
 
-API.get("/" + API_NAME + "/api/status", (req, res, next) => {
+API.get("/api/v1/status", (req, res, next) => {
     res.contentType = "json";
     
     // Get the name of the current Animation 
@@ -250,7 +249,6 @@ animationController.start(UPDATES_PER_SECOND);
 
 API.listen(API_PORT, function() {
     console.log('API listening on Port %s', API_PORT);
-    console.log('Name: %s', API_NAME);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
     console.log('Number of LEDs: %s', LEDCOUNT);
