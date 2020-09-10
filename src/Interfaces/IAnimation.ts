@@ -9,4 +9,9 @@ export interface IAnimation {
      * @param animation Current Animation, can be used by notifications to see what the current animation is
      */
     update(leds: Array<Led>, strip: IStripController, animation: IAnimation): void
+    
+    /**
+     * Get Name of that animation
+     */
+    getName(): string;
 }

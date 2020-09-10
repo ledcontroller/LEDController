@@ -1,8 +1,8 @@
-import {IAnimation} from "../Interfaces/IAnimation";
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../Interfaces/IStripController";
+import { IAnimation } from "../Interfaces/IAnimation";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface IBlinkData {
     duration: number,  // in Frames
@@ -25,7 +25,7 @@ export class Blink implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
         if (++this.frameCounter > this.activeTime) {
             this.frameCounter = 0;
             if (++this.curColor >= this.colors.length) this.curColor = 0;
@@ -33,5 +33,9 @@ export class Blink implements IAnimation{
             strip.all(this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
             strip.sync();
         }
+    }
+
+    public getName(): string {
+        return "Blink";
     }
 }

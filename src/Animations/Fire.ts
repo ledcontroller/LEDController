@@ -1,8 +1,8 @@
-import {IAnimation} from "../Interfaces/IAnimation";
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../Interfaces/IStripController";
+import { IAnimation } from "../Interfaces/IAnimation";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface IFireData {
     ledCount: number,  
@@ -34,7 +34,7 @@ export class Fire implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
         for (let i = 0; i < this.ledcount; i++) {
             if (this.pixelOntime[i] <= 0) {
                 // change color
@@ -50,5 +50,9 @@ export class Fire implements IAnimation{
         }
     
         strip.sync();
+    }
+
+    public getName(): string {
+        return "Fire";
     }
 }

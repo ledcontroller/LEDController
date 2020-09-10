@@ -1,7 +1,7 @@
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {INotification} from "../Interfaces/INotification";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { INotification } from "../Interfaces/INotification";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
 import { IStripController } from "../Interfaces/IStripController";
 
 interface ICenterToSideNotificationData {
@@ -28,11 +28,11 @@ export class CenterToSideNotification implements INotification{
         }
     }
 
-    attachDoneCallback(callback) {
+    public attachDoneCallback(callback: Function): void {
         this.finishCallback = callback;
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
 
         // Front
         for (let i = this.centerLED; i < this.centerLED + this.border; i++) {
@@ -50,5 +50,9 @@ export class CenterToSideNotification implements INotification{
             this.border = 0;
             if (++this.curColor >= this.colors.length) this.finishCallback();
         }
+    }
+
+    public getName(): string {
+        return "CenterToSide";
     }
 }

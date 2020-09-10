@@ -1,9 +1,9 @@
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {INotification} from "../Interfaces/INotification";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { INotification } from "../Interfaces/INotification";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
 import { IStripController } from "../Interfaces/IStripController";
-import {IAnimation} from "../Interfaces/IAnimation";
+import { IAnimation } from "../Interfaces/IAnimation";
 
 interface IRippleToCenterNotificationData {
     ledCount: number,
@@ -42,11 +42,11 @@ export class RippleToCenterNotification implements INotification {
         }
     }
 
-    public attachDoneCallback(doneCallback) {
+    public attachDoneCallback(doneCallback: Function): void {
         this.doneCallback = doneCallback;
     }
 
-    public update(led: Array<Led>, strip: IStripController, animation: IAnimation) {
+    public update(led: Array<Led>, strip: IStripController, animation: IAnimation): void {
         if (this.keepAnimationRunning) {
             animation.update(led, strip, animation);
         } else {
@@ -81,5 +81,9 @@ export class RippleToCenterNotification implements INotification {
                 this.doneCallback();
             }
         }
+    }
+
+    public getName(): string {
+        return "RippleToCenter";
     }
 }

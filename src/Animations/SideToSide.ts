@@ -1,8 +1,8 @@
-import {IAnimation} from "../Interfaces/IAnimation";
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../Interfaces/IStripController";
+import { IAnimation } from "../Interfaces/IAnimation";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface ISideToSideData {
     ledCount: number,
@@ -29,7 +29,7 @@ export class SideToSide implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
 
         if (this.direction) {
             for (let i = this.border; i < this.border + this.ledsPerFrame && i <= this.ledcount; i++) {
@@ -58,5 +58,9 @@ export class SideToSide implements IAnimation{
         }
 
         strip.sync();
+    }
+
+    public getName(): string {
+        return "SideToSide";
     }
 }

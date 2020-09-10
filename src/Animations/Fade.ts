@@ -1,8 +1,8 @@
-import {IAnimation} from "../Interfaces/IAnimation";
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../Interfaces/IStripController";
+import { IAnimation } from "../Interfaces/IAnimation";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface IFadeData {
     duration: number,  // in Frames
@@ -31,7 +31,7 @@ export class Fade implements IAnimation{
         this.calculateNextColorAndSteps();
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
 
         if (this.curFrame == this.smoothness) {
             this.curFrame = 0;
@@ -48,7 +48,7 @@ export class Fade implements IAnimation{
         this.curFrame++;
     }
 
-    calculateNextColorAndSteps() {
+    private calculateNextColorAndSteps(): void {
         if (++this.curColor >= this.colors.length) this.curColor = 0;
         let cur_Color = this.colors[this.curColor];
         let next_Color = this.colors[this.curColor + 1 >= this.colors.length ? 0 : this.curColor + 1];
@@ -77,5 +77,9 @@ export class Fade implements IAnimation{
                 a: alpha
             });
         }
+    }
+
+    public getName(): string {
+        return "Fade";
     }
 }

@@ -1,8 +1,8 @@
-import {IAnimation} from "../Interfaces/IAnimation";
-import {Led} from "../Led";
-import {IColor} from "../Interfaces/IColor";
-import {ParameterParsingError} from "../Errors/ParameterParsingError";
-import {IStripController} from "../Interfaces/IStripController";
+import { IAnimation } from "../Interfaces/IAnimation";
+import { Led } from "../Led";
+import { IColor } from "../Interfaces/IColor";
+import { ParameterParsingError } from "../Errors/ParameterParsingError";
+import { IStripController } from "../Interfaces/IStripController";
 
 interface ICenterToSideData {
     ledCount: number,
@@ -30,7 +30,7 @@ export class CenterToSide implements IAnimation{
         }
     }
 
-    update(leds: Array<Led>, strip: IStripController) {
+    public update(leds: Array<Led>, strip: IStripController): void {
 
         // Front
         for (let i = this.centerLED; i < this.centerLED + this.border && i <= this.ledcount; i++) {
@@ -51,5 +51,9 @@ export class CenterToSide implements IAnimation{
         }
 
         strip.sync();
+    }
+
+    public getName(): string {
+        return "CenterToSide";
     }
 }
