@@ -1,7 +1,6 @@
-import {Led} from "./Led";
-import {IAnimation} from './Interfaces/IAnimation'
-import {INotification} from "./Interfaces/INotification";
-import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
+import { Led } from "./Led";
+import { IAnimation } from './Interfaces/IAnimation'
+import { INotification } from "./Interfaces/INotification";
 import { IStripController } from "./Interfaces/IStripController";
 import { Blink } from "./Animations/Blink";
 
@@ -9,15 +8,15 @@ import { Blink } from "./Animations/Blink";
  * AnimationController handles the playback of Animations and Notifications
  */
 export class AnimationController {
-    animation: IAnimation = new Blink({ colors: [{r: 0, g: 255, b: 0, a: 0.2}], duration: 1000});
-    leds: Array<Led> = [];
-    strip: IStripController;
-    isPlayingNotification: boolean = false;
-    notificationStack: Array<INotification> = [];
-    afterNotificationAnimation: IAnimation;
-    running: boolean;
-    ups: number;
-    loop: NodeJS.Timer;
+    private animation: IAnimation = new Blink({ colors: [{r: 0, g: 255, b: 0, a: 0.2}], duration: 1000});
+    private leds: Array<Led> = [];
+    private strip: IStripController;
+    private playingNotification: boolean = false;
+    private notificationStack: Array<INotification> = [];
+    private afterNotificationAnimation: IAnimation;
+    private running: boolean;
+    private ups: number;
+    private loop: NodeJS.Timer;
 
     /**
      * AnimationController handles the playback of Animations and Notifications
@@ -37,9 +36,9 @@ export class AnimationController {
      * @param newAnimation New Animation ot be played
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
-    changeAnimation(newAnimation: IAnimation): void {
+    public changeAnimation(newAnimation: IAnimation): void {
         //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
-        if (this.isPlayingNotification) {
+        if (this.playingNotification) {
             this.afterNotificationAnimation = newAnimation;
         } else {
             this.animation = newAnimation;
@@ -50,8 +49,8 @@ export class AnimationController {
      * Stops the current Animation and plays the specified Notification
      * @param notification Notification to be played
      */
-    playNotification(notification: INotification): void {
-        if (this.isPlayingNotification) {
+    public playNotification(notification: INotification): void {
+        if (this.playingNotification) {
             this.notificationStack.push(notification);
             return;
         }
@@ -59,7 +58,7 @@ export class AnimationController {
         this.afterNotificationAnimation = this.animation;
         notification.attachDoneCallback(() => {
             this.animation = this.afterNotificationAnimation;
-            this.isPlayingNotification = false;
+            this.playingNotification = false;
 
             // Play next Notification
             if (this.notificationStack.length > 0) {
@@ -70,13 +69,13 @@ export class AnimationController {
             }
         });
         this.animation = notification;
-        this.isPlayingNotification = true;
+        this.playingNotification = true;
     }
 
     /**
      * Calls the Animation/Notification update function
      */
-    update() {
+    public update() {
         this.animation.update(this.leds, this.strip, this.afterNotificationAnimation);
     }
 
@@ -84,7 +83,7 @@ export class AnimationController {
      * Starts the Animation loop
      * @param updatesPerSeconde Times the update function will be called per second
      */
-    start(updatesPerSeconde: number): void {
+    public start(updatesPerSeconde: number): void {
         if (!this.running) {
             this.ups = updatesPerSeconde;
             this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
@@ -95,7 +94,7 @@ export class AnimationController {
     /**
      * Stops the Animation loop
      */
-    stopUpdate(): void {
+    public stopUpdate(): void {
         clearInterval(this.loop);
         this.running = false;
     }
@@ -104,11 +103,31 @@ export class AnimationController {
      * Clears LED-Strip and clears internal LED-Array
      * All LEDs are set to white
      */
-    clearLEDs(): void {
+    public clearLEDs(): void {
         this.strip.clear();
         for (let i = 0; i < this.strip.getLength(); i++) {
             this.leds.push(new Led({r: 0, g: 0, b: 0, a: 1}));
         }
         this.strip.sync();
+    }
+    
+    //
+    // Getters
+    //
+
+    public getAnimation(): IAnimation {
+        return this.animation;
+    }
+
+    public getUPS(): number {
+        return this.ups;
+    }
+
+    public isRunning(): boolean {
+        return this.running;
+    }
+
+    public isPlayingNotification(): boolean {
+        return this.playingNotification
     }
 }

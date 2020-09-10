@@ -87,6 +87,170 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/API.ts":
+/*!********************!*\
+  !*** ./src/API.ts ***!
+  \********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.API = void 0;
+const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
+const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.ts");
+const AnimationStore_1 = __webpack_require__(/*! ./AnimationStore */ "./src/AnimationStore.ts");
+const AnimationNotFoundError_1 = __webpack_require__(/*! ./Errors/AnimationNotFoundError */ "./src/Errors/AnimationNotFoundError.ts");
+const ERRORS = __webpack_require__(/*! restify-errors */ "restify-errors");
+const RSF = __webpack_require__(/*! restify */ "restify");
+class API {
+    constructor(animationController, options) {
+        this.animationController = animationController;
+        this.server = RSF.createServer(options);
+        this.server.use(RSF.plugins.bodyParser());
+        this.options = options;
+        this.uptime = new Date().getTime();
+        this.animationStore = AnimationStore_1.AnimationStore.getInstance();
+        this.registerRoutes();
+    }
+    registerRoutes() {
+        // Check if the token is used in basic authorization as password for user "token"
+        this.server.use(RSF.plugins.authorizationParser());
+        this.server.use((req, res, next) => {
+            // Skip for status
+            // if (req.getPath().endsWith("/status")) return next();
+            if (req.username !== "token" || req.authorization.basic.password !== this.options.token) {
+                return next(new ERRORS.UnauthorizedError("Wrong Token"));
+            }
+            return next();
+        });
+        // Simple logging
+        this.server.on("Unauthorized", (req, res, err, cb) => {
+            console.error(err);
+            cb();
+        });
+        this.server.post("/api/v1/animations/*", (req, res, next) => {
+            let path = req.getPath();
+            let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
+            let parameters = req.body.animation;
+            parameters.ledCount = this.options.ledCount;
+            try {
+                let animation = this.animationStore.getAnimation(animationName, parameters);
+                this.animationController.changeAnimation(animation);
+            }
+            catch (error) {
+                if (error instanceof ParameterParsingError_1.ParameterParsingError) {
+                    return next(new ERRORS.BadRequestError(error.message));
+                }
+                if (error instanceof AnimationNotRunningError_1.AnimationNotRunningError) {
+                    return next(new ERRORS.ServiceUnavailableError(error.message));
+                }
+                if (error instanceof AnimationNotFoundError_1.AnimationNotFoundError) {
+                    return next(new ERRORS.NotFoundError(error.message));
+                }
+                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+            }
+            res.contentType = "json";
+            res.send(200, { "status": 200, "message": "Changed Animation" });
+            return next();
+        });
+        this.server.post("/api/v1/notification/", (req, res, next) => {
+            for (let notification of req.body.notifications) {
+                notification.ledCount = this.options.ledCount;
+                //Get Animation Class and Initialize with Parameters from Request
+                if (!notification.parameters) {
+                    return next(new ERRORS.BadRequestError("No Parameters provided"));
+                }
+                try {
+                    let notif = this.animationStore.getNotification(notification.effect, notification.parameters);
+                    this.animationController.playNotification(notif);
+                }
+                catch (error) {
+                    if (error instanceof ParameterParsingError_1.ParameterParsingError) {
+                        return next(new ERRORS.BadRequestError(error.message));
+                    }
+                    if (error instanceof AnimationNotFoundError_1.AnimationNotFoundError) {
+                        return next(new ERRORS.NotFoundError(error.message));
+                    }
+                    return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+                }
+            }
+            res.contentType = "json";
+            res.send(200, { "status": 200, "message": "Added Notifications to queue" });
+            return next();
+        });
+        this.server.post("/api/v1/notifications/*", (req, res, next) => {
+            let path = req.getPath();
+            let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
+            let parameters = req.body.notification;
+            parameters.ledCount = this.options.ledCount;
+            try {
+                let notification = this.animationStore.getNotification(notificationName, parameters);
+                this.animationController.playNotification(notification);
+            }
+            catch (error) {
+                if (error instanceof ParameterParsingError_1.ParameterParsingError) {
+                    return next(new ERRORS.BadRequestError(error.message));
+                }
+                if (error instanceof AnimationNotFoundError_1.AnimationNotFoundError) {
+                    return next(new ERRORS.NotFoundError(error.message));
+                }
+                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+            }
+            res.contentType = "json";
+            res.send(200, { "status": 200, "message": "Added Notification to queue" });
+            return next();
+        });
+        this.server.post("/api/v1/start", (req, res, next) => {
+            if (req.body.update_per_second) {
+                this.animationController.start(req.body.update_per_second);
+            }
+            else {
+                return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
+            }
+            res.contentType = "json";
+            res.send(200, { "status": 200, "message": "Started animation" });
+            return next();
+        });
+        this.server.get("/api/v1/stop", (req, res, next) => {
+            this.animationController.stopUpdate();
+            this.animationController.clearLEDs();
+            res.contentType = "json";
+            res.send(200, { "status": 200, "message": "Stopped animation" });
+            return next();
+        });
+        this.server.get("/api/v1/status", (req, res, next) => {
+            res.contentType = "json";
+            // Get the name of the current Animation 
+            let currentAnimationName = "None";
+            if (this.animationController.isRunning()) {
+                currentAnimationName = this.animationController.getAnimation().getName();
+            }
+            res.send(200, {
+                "status": 200,
+                "updates_per_second": this.animationController.getUPS(),
+                "running": this.animationController.isRunning(),
+                "isPlayingNotification": this.animationController.isPlayingNotification,
+                "version": this.options.version,
+                "uptime": new Date().getTime() - this.uptime,
+                "animation": currentAnimationName,
+            });
+            return next();
+        });
+    }
+    listen(cb) {
+        this.server.listen(this.options.port, cb);
+    }
+    close(cb) {
+        this.server.close(cb);
+    }
+}
+exports.API = API;
+
+
+/***/ }),
+
 /***/ "./src/AnimationController.ts":
 /*!************************************!*\
   !*** ./src/AnimationController.ts ***!
@@ -111,7 +275,7 @@ class AnimationController {
     constructor(strip) {
         this.animation = new Blink_1.Blink({ colors: [{ r: 0, g: 255, b: 0, a: 0.2 }], duration: 1000 });
         this.leds = [];
-        this.isPlayingNotification = false;
+        this.playingNotification = false;
         this.notificationStack = [];
         this.strip = strip;
         // Init LEDs
@@ -126,7 +290,7 @@ class AnimationController {
      */
     changeAnimation(newAnimation) {
         //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
-        if (this.isPlayingNotification) {
+        if (this.playingNotification) {
             this.afterNotificationAnimation = newAnimation;
         }
         else {
@@ -138,14 +302,14 @@ class AnimationController {
      * @param notification Notification to be played
      */
     playNotification(notification) {
-        if (this.isPlayingNotification) {
+        if (this.playingNotification) {
             this.notificationStack.push(notification);
             return;
         }
         this.afterNotificationAnimation = this.animation;
         notification.attachDoneCallback(() => {
             this.animation = this.afterNotificationAnimation;
-            this.isPlayingNotification = false;
+            this.playingNotification = false;
             // Play next Notification
             if (this.notificationStack.length > 0) {
                 this.playNotification(this.notificationStack.shift());
@@ -156,7 +320,7 @@ class AnimationController {
             }
         });
         this.animation = notification;
-        this.isPlayingNotification = true;
+        this.playingNotification = true;
     }
     /**
      * Calls the Animation/Notification update function
@@ -193,8 +357,92 @@ class AnimationController {
         }
         this.strip.sync();
     }
+    //
+    // Getters
+    //
+    getAnimation() {
+        return this.animation;
+    }
+    getUPS() {
+        return this.ups;
+    }
+    isRunning() {
+        return this.running;
+    }
+    isPlayingNotification() {
+        return this.playingNotification;
+    }
 }
 exports.AnimationController = AnimationController;
+
+
+/***/ }),
+
+/***/ "./src/AnimationStore.ts":
+/*!*******************************!*\
+  !*** ./src/AnimationStore.ts ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnimationStore = void 0;
+const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
+const SideToCenter_1 = __webpack_require__(/*! ./Animations/SideToCenter */ "./src/Animations/SideToCenter.ts");
+const CenterToSide_1 = __webpack_require__(/*! ./Animations/CenterToSide */ "./src/Animations/CenterToSide.ts");
+const SideToSide_1 = __webpack_require__(/*! ./Animations/SideToSide */ "./src/Animations/SideToSide.ts");
+const Fade_1 = __webpack_require__(/*! ./Animations/Fade */ "./src/Animations/Fade.ts");
+const Fire_1 = __webpack_require__(/*! ./Animations/Fire */ "./src/Animations/Fire.ts");
+const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotification */ "./src/Notifications/BlinkNotification.ts");
+const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
+const RippleToCenterNotification_1 = __webpack_require__(/*! ./Notifications/RippleToCenterNotification */ "./src/Notifications/RippleToCenterNotification.ts");
+const AnimationNotFoundError_1 = __webpack_require__(/*! ./Errors/AnimationNotFoundError */ "./src/Errors/AnimationNotFoundError.ts");
+class AnimationStore {
+    constructor() {
+        // Loads the default Animations
+        this.animations = {
+            "blink": Blink_1.Blink,
+            "sidetocenter": SideToCenter_1.SideToCenter,
+            "centertoside": CenterToSide_1.CenterToSide,
+            "sidetoside": SideToSide_1.SideToSide,
+            "fade": Fade_1.Fade,
+            "fire": Fire_1.Fire,
+        };
+        // Loads the default Notifications
+        this.notifications = {
+            "blink": BlinkNotification_1.BlinkNotification,
+            "centertoside": CenterToSideNotification_1.CenterToSideNotification,
+            "rippletocenter": RippleToCenterNotification_1.RippleToCenterNotification,
+        };
+    }
+    /**
+     * Gets and or tries to load the Animation
+     * @param name Name of the Animation
+     */
+    getAnimation(name, params) {
+        if (!this.animations[name])
+            throw new AnimationNotFoundError_1.AnimationNotFoundError("Animation not found");
+        return new this.animations[name](params);
+    }
+    /**
+     * Gets and or tries to load the Notification
+     * @param name Name of the Notification
+     */
+    getNotification(name, params) {
+        if (!this.notifications[name])
+            throw new AnimationNotFoundError_1.AnimationNotFoundError("Notification not found");
+        return new this.notifications[name](params);
+    }
+    static getInstance() {
+        if (!AnimationStore.instance) {
+            AnimationStore.instance = new AnimationStore();
+        }
+        return AnimationStore.instance;
+    }
+}
+exports.AnimationStore = AnimationStore;
 
 
 /***/ }),
@@ -230,6 +478,9 @@ class Blink {
             strip.all(this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
             strip.sync();
         }
+    }
+    getName() {
+        return "Blink";
     }
 }
 exports.Blink = Blink;
@@ -282,6 +533,9 @@ class CenterToSide {
                 this.curColor = 0;
         }
         strip.sync();
+    }
+    getName() {
+        return "CenterToSide";
     }
 }
 exports.CenterToSide = CenterToSide;
@@ -355,6 +609,9 @@ class Fade {
             });
         }
     }
+    getName() {
+        return "Fade";
+    }
 }
 exports.Fade = Fade;
 
@@ -401,6 +658,9 @@ class Fire {
             }
         }
         strip.sync();
+    }
+    getName() {
+        return "Fire";
     }
 }
 exports.Fire = Fire;
@@ -451,6 +711,9 @@ class SideToCenter {
                 this.curColor = 0;
         }
         strip.sync();
+    }
+    getName() {
+        return "SideToCenter";
     }
 }
 exports.SideToCenter = SideToCenter;
@@ -515,6 +778,9 @@ class SideToSide {
         }
         strip.sync();
     }
+    getName() {
+        return "SideToSide";
+    }
 }
 exports.SideToSide = SideToSide;
 
@@ -532,36 +798,9 @@ exports.SideToSide = SideToSide;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const AnimationController_1 = __webpack_require__(/*! ./AnimationController */ "./src/AnimationController.ts");
-const Blink_1 = __webpack_require__(/*! ./Animations/Blink */ "./src/Animations/Blink.ts");
-const SideToCenter_1 = __webpack_require__(/*! ./Animations/SideToCenter */ "./src/Animations/SideToCenter.ts");
-const CenterToSide_1 = __webpack_require__(/*! ./Animations/CenterToSide */ "./src/Animations/CenterToSide.ts");
-const SideToSide_1 = __webpack_require__(/*! ./Animations/SideToSide */ "./src/Animations/SideToSide.ts");
-const Fade_1 = __webpack_require__(/*! ./Animations/Fade */ "./src/Animations/Fade.ts");
-const BlinkNotification_1 = __webpack_require__(/*! ./Notifications/BlinkNotification */ "./src/Notifications/BlinkNotification.ts");
-const CenterToSideNotification_1 = __webpack_require__(/*! ./Notifications/CenterToSideNotification */ "./src/Notifications/CenterToSideNotification.ts");
-const ParameterParsingError_1 = __webpack_require__(/*! ./Errors/ParameterParsingError */ "./src/Errors/ParameterParsingError.ts");
-const AnimationNotRunningError_1 = __webpack_require__(/*! ./Errors/AnimationNotRunningError */ "./src/Errors/AnimationNotRunningError.ts");
-const RippleToCenterNotification_1 = __webpack_require__(/*! ./Notifications/RippleToCenterNotification */ "./src/Notifications/RippleToCenterNotification.ts");
-const Fire_1 = __webpack_require__(/*! ./Animations/Fire */ "./src/Animations/Fire.ts");
-const RSF = __webpack_require__(/*! restify */ "restify");
-const ERRORS = __webpack_require__(/*! restify-errors */ "restify-errors");
+const API_1 = __webpack_require__(/*! ./API */ "./src/API.ts");
 const FS = __webpack_require__(/*! fs */ "fs");
-// Loads the default Animations
-const ANIMATIONS = {
-    "blink": Blink_1.Blink,
-    "sidetocenter": SideToCenter_1.SideToCenter,
-    "centertoside": CenterToSide_1.CenterToSide,
-    "sidetoside": SideToSide_1.SideToSide,
-    "fade": Fade_1.Fade,
-    "fire": Fire_1.Fire,
-};
-// Loads the default Notifications
-const NOTIFICATIONS = {
-    "blink": BlinkNotification_1.BlinkNotification,
-    "centertoside": CenterToSideNotification_1.CenterToSideNotification,
-    "rippletocenter": RippleToCenterNotification_1.RippleToCenterNotification,
-};
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 // Welcome
 console.log('LED-Controller %s', VERSION);
 console.log('by Lukas Sturm');
@@ -576,8 +815,7 @@ const STRIPCONTROLLER = ARGUMENTS["stripcontroller"];
 const PRIVATEKEY = ARGUMENTS["privatekey"];
 const PUBLICKEY = ARGUMENTS["publickey"];
 const USEHTTP = ARGUMENTS["http"];
-let uptime = new Date().getTime();
-let API;
+let api;
 //
 //   LED setup
 //
@@ -587,7 +825,12 @@ const animationController = new AnimationController_1.AnimationController(strip)
 //
 //   API init and middleware
 //
-const API_OPTIONS = {};
+const API_OPTIONS = {
+    port: API_PORT,
+    version: VERSION,
+    token: TOKEN,
+    ledCount: LEDCOUNT
+};
 // Check if cert is available and check if both keys are available
 if (!USEHTTP) {
     if (PRIVATEKEY || PUBLICKEY) {
@@ -607,149 +850,12 @@ if (!USEHTTP) {
 else {
     console.warn("Running in unsecure HTTP mode \nConsider using a certificate to encrypt API access");
 }
-API = RSF.createServer(API_OPTIONS);
-API.use(RSF.plugins.bodyParser());
-// Check if the token is used in basic authorization as password for user "token"
-API.use(RSF.plugins.authorizationParser());
-API.use((req, res, next) => {
-    // Skip for status
-    // if (req.getPath().endsWith("/status")) return next();
-    if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
-        return next(new ERRORS.UnauthorizedError("Wrong Token"));
-    }
-    return next();
-});
-// Simple logging
-API.on("Unauthorized", (req, res, err, cb) => {
-    console.error(err);
-    cb();
-});
-//
-//   ENDPOINTS
-//
-API.post("/api/v1/animations/*", (req, res, next) => {
-    let path = req.getPath();
-    let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-    let parameters = req.body.animation;
-    parameters.ledCount = LEDCOUNT;
-    let AnimationClass = ANIMATIONS[animationName];
-    if (AnimationClass) {
-        try {
-            let animation = new AnimationClass(parameters);
-            animationController.changeAnimation(animation);
-        }
-        catch (error) {
-            if (error instanceof ParameterParsingError_1.ParameterParsingError) {
-                return next(new ERRORS.BadRequestError(error.message));
-            }
-            if (error instanceof AnimationNotRunningError_1.AnimationNotRunningError) {
-                return next(new ERRORS.ServiceUnavailableError(error.message));
-            }
-        }
-    }
-    else {
-        return next(new ERRORS.NotFoundError("Animation not found"));
-    }
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "Changed Animation" });
-    return next();
-});
-API.post("/api/v1/notification/", (req, res, next) => {
-    for (let notification of req.body.notifications) {
-        notification.ledCount = LEDCOUNT;
-        //Get Animation Class and Initialize with Parameters from Request
-        let NotificationClass = NOTIFICATIONS[notification.effect];
-        if (NotificationClass) {
-            if (!notification.parameters) {
-                return next(new ERRORS.BadRequestError("No Parameters provided"));
-            }
-            try {
-                animationController.playNotification(new NotificationClass(notification.parameters));
-            }
-            catch (error) {
-                if (error instanceof ParameterParsingError_1.ParameterParsingError) {
-                    return next(new ERRORS.BadRequestError(error.message));
-                }
-            }
-        }
-        else {
-            return next(new ERRORS.NotFoundError("Notification not found"));
-        }
-    }
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "Added Notifications to queue" });
-    return next();
-});
-API.post("/api/v1/notifications/*", (req, res, next) => {
-    let path = req.getPath();
-    let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-    let parameters = req.body.notification;
-    parameters.ledCount = LEDCOUNT;
-    let NotificationClass = NOTIFICATIONS[notificationName];
-    if (NotificationClass) {
-        try {
-            let notification = new NotificationClass(parameters);
-            animationController.playNotification(notification);
-        }
-        catch (error) {
-            return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
-        }
-    }
-    else {
-        return next(new ERRORS.NotFoundError("Notification not found"));
-    }
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "Added Notification to queue" });
-    return next();
-});
-API.post("/api/v1/start", (req, res, next) => {
-    if (req.body.update_per_second) {
-        animationController.start(req.body.update_per_second);
-    }
-    else {
-        return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
-    }
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "Started animation" });
-    return next();
-});
-API.get("/api/v1/stop", (req, res, next) => {
-    animationController.stopUpdate();
-    animationController.clearLEDs();
-    res.contentType = "json";
-    res.send(200, { "status": 200, "message": "Stopped animation" });
-    return next();
-});
-API.get("/api/v1/status", (req, res, next) => {
-    res.contentType = "json";
-    // Get the name of the current Animation 
-    let currentAnimationName = "None";
-    if (animationController.running) {
-        for (let animation in ANIMATIONS) {
-            if (ANIMATIONS.hasOwnProperty(animation)) {
-                if (animationController.animation instanceof ANIMATIONS[animation]) {
-                    currentAnimationName = animation;
-                    break;
-                }
-            }
-        }
-    }
-    res.send(200, {
-        "status": 200,
-        "updates_per_second": animationController.ups,
-        "running": animationController.running,
-        "isPlayingNotification": animationController.isPlayingNotification,
-        "version": VERSION,
-        "uptime": new Date().getTime() - uptime,
-        "animation": currentAnimationName,
-    });
-    return next();
-});
+api = new API_1.API(animationController, API_OPTIONS);
 //
 //   Application Start
 //
 animationController.start(UPDATES_PER_SECOND);
-API.listen(API_PORT, function () {
+api.listen(function () {
     console.log('API listening on Port %s', API_PORT);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
@@ -759,8 +865,8 @@ API.listen(API_PORT, function () {
 //   Helping Functions
 //
 function exitApplication() {
-    if (API !== null && API !== undefined) {
-        API.close(() => {
+    if (api !== null && api !== undefined) {
+        api.close(() => {
             strip.off();
             strip.shutdown(() => {
                 console.log("Bye!");
@@ -845,6 +951,28 @@ function parseArguments(commandlineArguments) {
 }
 process.on("SIGINT", () => exitApplication());
 process.on("SIGTERM", () => exitApplication());
+
+
+/***/ }),
+
+/***/ "./src/Errors/AnimationNotFoundError.ts":
+/*!**********************************************!*\
+  !*** ./src/Errors/AnimationNotFoundError.ts ***!
+  \**********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnimationNotFoundError = void 0;
+class AnimationNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        Error.captureStackTrace(this, AnimationNotFoundError);
+    }
+}
+exports.AnimationNotFoundError = AnimationNotFoundError;
 
 
 /***/ }),
@@ -951,6 +1079,9 @@ class BlinkNotification {
             strip.sync();
         }
     }
+    getName() {
+        return "Blink";
+    }
 }
 exports.BlinkNotification = BlinkNotification;
 
@@ -1000,6 +1131,9 @@ class CenterToSideNotification {
             if (++this.curColor >= this.colors.length)
                 this.finishCallback();
         }
+    }
+    getName() {
+        return "CenterToSide";
     }
 }
 exports.CenterToSideNotification = CenterToSideNotification;
@@ -1069,6 +1203,9 @@ class RippleToCenterNotification {
                 this.doneCallback();
             }
         }
+    }
+    getName() {
+        return "RippleToCenter";
     }
 }
 exports.RippleToCenterNotification = RippleToCenterNotification;

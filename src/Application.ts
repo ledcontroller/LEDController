@@ -1,39 +1,9 @@
-import {AnimationController} from "./AnimationController";
-import {Blink} from "./Animations/Blink";
-import {SideToCenter} from "./Animations/SideToCenter";
-import {CenterToSide} from "./Animations/CenterToSide";
-import {SideToSide} from "./Animations/SideToSide";
-import {Fade} from "./Animations/Fade";
-import {BlinkNotification} from "./Notifications/BlinkNotification";
-import { CenterToSideNotification } from "./Notifications/CenterToSideNotification";
-import {ParameterParsingError} from "./Errors/ParameterParsingError";
-import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
+import { AnimationController } from "./AnimationController";
 import { IStripController } from "./Interfaces/IStripController";
-import {RippleToCenterNotification} from "./Notifications/RippleToCenterNotification";
-import { Fire } from "./Animations/Fire";
-import { Server, ServerOptions } from "restify";
+import { API, APIOptions } from "./API";
 
-const RSF = require("restify");
-const ERRORS = require("restify-errors");
 const FS = require("fs");
-
-// Loads the default Animations
-const ANIMATIONS = {
-    "blink": Blink,
-    "sidetocenter": SideToCenter,
-    "centertoside": CenterToSide,
-    "sidetoside": SideToSide,
-    "fade": Fade,
-    "fire": Fire,
-};
-
-// Loads the default Notifications
-const NOTIFICATIONS = {
-    "blink": BlinkNotification,
-    "centertoside": CenterToSideNotification,
-    "rippletocenter": RippleToCenterNotification,
-};
-const VERSION: string = "0.2.0";
+const VERSION: string = "0.2.1";
 
 // Welcome
 console.log('LED-Controller %s', VERSION);
@@ -52,8 +22,7 @@ const PRIVATEKEY: string = ARGUMENTS["privatekey"];
 const PUBLICKEY: string = ARGUMENTS["publickey"];
 const USEHTTP: boolean = ARGUMENTS["http"];
 
-let uptime: number = new Date().getTime();
-let API : Server;
+let api : API;
 
 //
 //   LED setup
@@ -67,7 +36,12 @@ const animationController: AnimationController = new AnimationController(strip);
 //
 //   API init and middleware
 //
-const API_OPTIONS : ServerOptions = {};
+const API_OPTIONS : APIOptions = {
+    port: API_PORT,
+    version: VERSION,
+    token: TOKEN,
+    ledCount: LEDCOUNT
+};
 
 
 // Check if cert is available and check if both keys are available
@@ -88,157 +62,7 @@ if (!USEHTTP) {
     console.warn("Running in unsecure HTTP mode \nConsider using a certificate to encrypt API access");
 }
 
-API = RSF.createServer(API_OPTIONS);
-API.use(RSF.plugins.bodyParser());
-
-// Check if the token is used in basic authorization as password for user "token"
-API.use(RSF.plugins.authorizationParser());
-API.use((req, res, next) => {
-    // Skip for status
-    // if (req.getPath().endsWith("/status")) return next();
-    if (req.username !== "token" || req.authorization.basic.password !== TOKEN) {
-        return next(new ERRORS.UnauthorizedError("Wrong Token"));
-    }
-    return next();
-});
-
-// Simple logging
-API.on("Unauthorized", (req, res, err, cb) => {
-    console.error(err);
-    cb();
-});
-
-
-//
-//   ENDPOINTS
-//
-
-API.post("/api/v1/animations/*", (req, res, next) => {
-    let path = req.getPath();
-    let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-    let parameters = req.body.animation;
-    parameters.ledCount = LEDCOUNT;
-    
-    let AnimationClass = ANIMATIONS[animationName];
-    if (AnimationClass) {
-        try {
-            let animation = new AnimationClass(parameters);            
-            animationController.changeAnimation(animation);
-        } catch (error) {
-            if (error instanceof ParameterParsingError) {
-                return next(new ERRORS.BadRequestError(error.message));
-            }
-            if (error instanceof AnimationNotRunningError) {
-                return next(new ERRORS.ServiceUnavailableError(error.message));
-            }
-        }
-    } else {
-        return next(new ERRORS.NotFoundError("Animation not found"));
-    }
-
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "Changed Animation"});
-    return next();
-});
-
-API.post("/api/v1/notification/", (req, res, next) => {
-    for(let notification of req.body.notifications) {
-        notification.ledCount = LEDCOUNT;
-
-        //Get Animation Class and Initialize with Parameters from Request
-        let NotificationClass = NOTIFICATIONS[notification.effect];
-        if (NotificationClass) {
-            if (!notification.parameters) {
-                return next(new ERRORS.BadRequestError("No Parameters provided"));
-            }
-            try {
-                animationController.playNotification(new NotificationClass(notification.parameters))
-            } catch (error) {
-                if (error instanceof ParameterParsingError) {
-                    return next(new ERRORS.BadRequestError(error.message))
-                }
-            }
-        } else {
-            return next(new ERRORS.NotFoundError("Notification not found"));
-        }
-    }
-
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "Added Notifications to queue"});
-    return next();
-});
-
-API.post("/api/v1/notifications/*", (req, res, next) => {
-    let path = req.getPath();
-    let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-    let parameters = req.body.notification;
-    parameters.ledCount = LEDCOUNT;
-    
-    let NotificationClass = NOTIFICATIONS[notificationName];
-    if (NotificationClass) {
-        try {
-            let notification = new NotificationClass(parameters);            
-            animationController.playNotification(notification);
-        } catch (error) {
-            return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
-        }
-    } else {
-        return next(new ERRORS.NotFoundError("Notification not found"));
-    }
-
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "Added Notification to queue"});
-    return next();
-});
-
-API.post("/api/v1/start", (req, res, next) => {
-    if (req.body.update_per_second) {
-        animationController.start(req.body.update_per_second);
-    } else {
-        return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
-    }
-
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "Started animation"});
-    return next();
-});
-
-API.get("/api/v1/stop", (req, res, next) => {
-    animationController.stopUpdate();
-    animationController.clearLEDs();
-
-    res.contentType = "json";
-    res.send(200, {"status": 200, "message": "Stopped animation"});
-    return next();
-});
-
-API.get("/api/v1/status", (req, res, next) => {
-    res.contentType = "json";
-    
-    // Get the name of the current Animation 
-    let currentAnimationName: string = "None";
-    if (animationController.running) {
-        for (let animation in ANIMATIONS) {
-            if (ANIMATIONS.hasOwnProperty(animation)) {
-                if (animationController.animation instanceof ANIMATIONS[animation]) {
-                    currentAnimationName = animation;
-                    break;
-                }
-            }
-        }
-    }
-    res.send(200, {
-        "status": 200, 
-        "updates_per_second": animationController.ups,
-        "running": animationController.running,
-        "isPlayingNotification": animationController.isPlayingNotification,
-        "version": VERSION,
-        "uptime": new Date().getTime() - uptime,
-        "animation": currentAnimationName,
-    });
-    return next();
-});
-
+api = new API(animationController, API_OPTIONS);
 
 
 //
@@ -247,7 +71,7 @@ API.get("/api/v1/status", (req, res, next) => {
 
 animationController.start(UPDATES_PER_SECOND);
 
-API.listen(API_PORT, function() {
+api.listen(function() {
     console.log('API listening on Port %s', API_PORT);
     console.log('Accesstoken: %s', TOKEN);
     console.log('Updates per second: %s', UPDATES_PER_SECOND);
@@ -261,8 +85,8 @@ API.listen(API_PORT, function() {
 //
 
 function exitApplication() : void {
-    if (API !== null && API !== undefined) {
-        API.close(() => {
+    if (api !== null && api !== undefined) {
+        api.close(() => {
             strip.off();
             strip.shutdown(() => {
                 console.log("Bye!");
