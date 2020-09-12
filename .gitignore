@@ -12,3 +12,6 @@ animation.txt
 certs/
 
 \.vscode
+
+LED-Controller.js
+LED-Controller.js.map
