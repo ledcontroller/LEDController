@@ -68,7 +68,7 @@ export class API {
             }
 
             res.contentType = "json";
-            res.send(200, {"status": 200, "message": "Changed Animation"});
+            res.send({"status": 200, "message": "Changed Animation"});
             return next();
         });
         
@@ -96,7 +96,7 @@ export class API {
             }
         
             res.contentType = "json";
-            res.send(200, {"status": 200, "message": "Added Notifications to queue"});
+            res.send({"status": 200, "message": "Added Notifications to queue"});
             return next();
         });
         
@@ -120,28 +120,26 @@ export class API {
             }
         
             res.contentType = "json";
-            res.send(200, {"status": 200, "message": "Added Notification to queue"});
+            res.send({"status": 200, "message": "Added Notification to queue"});
             return next();
         });
         
         this.server.post("/api/v1/start", (req, res, next) => {
-            if (req.body.update_per_second) {
-                this.animationController.start(req.body.update_per_second);
-            } else {
-                return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"))
-            }
+            if (!req.body.update_per_second) return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
+
+            this.animationController.start(req.body.update_per_second);
         
             res.contentType = "json";
-            res.send(200, {"status": 200, "message": "Started animation"});
+            res.send({"status": 200, "message": "Started animation"});
             return next();
         });
         
         this.server.get("/api/v1/stop", (req, res, next) => {
-            this.animationController.stopUpdate();
+            this.animationController.stop();
             this.animationController.clearLEDs();
         
             res.contentType = "json";
-            res.send(200, {"status": 200, "message": "Stopped animation"});
+            res.send({"status": 200, "message": "Stopped animation"});
             return next();
         });
         
@@ -154,7 +152,7 @@ export class API {
                 currentAnimationName = this.animationController.getAnimation().getName();
             }
 
-            res.send(200, {
+            res.send({
                 "status": 200, 
                 "updates_per_second": this.animationController.getUPS(),
                 "running": this.animationController.isRunning(),

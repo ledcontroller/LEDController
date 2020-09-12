@@ -14,8 +14,9 @@ export class AnimationController {
     private playingNotification: boolean = false;
     private notificationStack: Array<INotification> = [];
     private afterNotificationAnimation: IAnimation;
-    private running: boolean;
-    private ups: number;
+    private running: boolean = false;
+    private stopAfterNotification: boolean = false;
+    private ups: number = 30;
     private loop: NodeJS.Timer;
 
     /**
@@ -37,7 +38,6 @@ export class AnimationController {
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
     public changeAnimation(newAnimation: IAnimation): void {
-        //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.playingNotification) {
             this.afterNotificationAnimation = newAnimation;
         } else {
@@ -65,11 +65,23 @@ export class AnimationController {
                 this.playNotification(this.notificationStack.shift());
                 return;
             } else {
-                this.update();
+                if (this.stopAfterNotification) {
+                    // Restop Loop after notification finished
+                    this.stop();
+                    this.clearLEDs();
+                } else {
+                    this.update();
+                }
             }
         });
         this.animation = notification;
         this.playingNotification = true;
+
+        // Start Loop for notification
+        if (!this.running && !this.stopAfterNotification) {
+            this.start(this.ups);
+            this.stopAfterNotification = true;
+        }
     }
 
     /**
@@ -84,6 +96,9 @@ export class AnimationController {
      * @param updatesPerSeconde Times the update function will be called per second
      */
     public start(updatesPerSeconde: number): void {
+        if (this.running && this.stopAfterNotification) {
+            this.stopAfterNotification = false;
+        }
         if (!this.running) {
             this.ups = updatesPerSeconde;
             this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
@@ -94,7 +109,7 @@ export class AnimationController {
     /**
      * Stops the Animation loop
      */
-    public stopUpdate(): void {
+    public stop(): void {
         clearInterval(this.loop);
         this.running = false;
     }

@@ -152,7 +152,7 @@ class API {
                 return next(new ERRORS.InternalServerError("Something doesn't seem right"));
             }
             res.contentType = "json";
-            res.send(200, { "status": 200, "message": "Changed Animation" });
+            res.send({ "status": 200, "message": "Changed Animation" });
             return next();
         });
         this.server.post("/api/v1/notification/", (req, res, next) => {
@@ -177,7 +177,7 @@ class API {
                 }
             }
             res.contentType = "json";
-            res.send(200, { "status": 200, "message": "Added Notifications to queue" });
+            res.send({ "status": 200, "message": "Added Notifications to queue" });
             return next();
         });
         this.server.post("/api/v1/notifications/*", (req, res, next) => {
@@ -199,25 +199,22 @@ class API {
                 return next(new ERRORS.InternalServerError("Something doesn't seem right"));
             }
             res.contentType = "json";
-            res.send(200, { "status": 200, "message": "Added Notification to queue" });
+            res.send({ "status": 200, "message": "Added Notification to queue" });
             return next();
         });
         this.server.post("/api/v1/start", (req, res, next) => {
-            if (req.body.update_per_second) {
-                this.animationController.start(req.body.update_per_second);
-            }
-            else {
+            if (!req.body.update_per_second)
                 return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
-            }
+            this.animationController.start(req.body.update_per_second);
             res.contentType = "json";
-            res.send(200, { "status": 200, "message": "Started animation" });
+            res.send({ "status": 200, "message": "Started animation" });
             return next();
         });
         this.server.get("/api/v1/stop", (req, res, next) => {
-            this.animationController.stopUpdate();
+            this.animationController.stop();
             this.animationController.clearLEDs();
             res.contentType = "json";
-            res.send(200, { "status": 200, "message": "Stopped animation" });
+            res.send({ "status": 200, "message": "Stopped animation" });
             return next();
         });
         this.server.get("/api/v1/status", (req, res, next) => {
@@ -227,7 +224,7 @@ class API {
             if (this.animationController.isRunning()) {
                 currentAnimationName = this.animationController.getAnimation().getName();
             }
-            res.send(200, {
+            res.send({
                 "status": 200,
                 "updates_per_second": this.animationController.getUPS(),
                 "running": this.animationController.isRunning(),
@@ -277,6 +274,9 @@ class AnimationController {
         this.leds = [];
         this.playingNotification = false;
         this.notificationStack = [];
+        this.running = false;
+        this.stopAfterNotification = false;
+        this.ups = 30;
         this.strip = strip;
         // Init LEDs
         for (let i = 0; i < this.strip.getLength(); i++) {
@@ -289,7 +289,6 @@ class AnimationController {
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
     changeAnimation(newAnimation) {
-        //if (!this.running) throw new AnimationNotRunningError("Animationloop currently not running!");
         if (this.playingNotification) {
             this.afterNotificationAnimation = newAnimation;
         }
@@ -316,11 +315,23 @@ class AnimationController {
                 return;
             }
             else {
-                this.update();
+                if (this.stopAfterNotification) {
+                    // Restop Loop after notification finished
+                    this.stop();
+                    this.clearLEDs();
+                }
+                else {
+                    this.update();
+                }
             }
         });
         this.animation = notification;
         this.playingNotification = true;
+        // Start Loop for notification
+        if (!this.running && !this.stopAfterNotification) {
+            this.start(this.ups);
+            this.stopAfterNotification = true;
+        }
     }
     /**
      * Calls the Animation/Notification update function
@@ -333,6 +344,9 @@ class AnimationController {
      * @param updatesPerSeconde Times the update function will be called per second
      */
     start(updatesPerSeconde) {
+        if (this.running && this.stopAfterNotification) {
+            this.stopAfterNotification = false;
+        }
         if (!this.running) {
             this.ups = updatesPerSeconde;
             this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
@@ -342,7 +356,7 @@ class AnimationController {
     /**
      * Stops the Animation loop
      */
-    stopUpdate() {
+    stop() {
         clearInterval(this.loop);
         this.running = false;
     }
@@ -1108,6 +1122,7 @@ class CenterToSideNotification {
         this.colors = requestParameter.colors;
         this.centerLED = Math.round(requestParameter.ledCount * 0.5);
         this.ledsPreFrame = Math.round(this.centerLED / requestParameter.duration);
+        this.ledCount = requestParameter.ledCount;
         if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
             throw new ParameterParsingError_1.ParameterParsingError("Wrong parameter provided");
         }
@@ -1117,11 +1132,11 @@ class CenterToSideNotification {
     }
     update(leds, strip) {
         // Front
-        for (let i = this.centerLED; i < this.centerLED + this.border; i++) {
+        for (let i = this.centerLED; i < this.centerLED + this.border && i < this.ledCount; i++) {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         // Back
-        for (let i = this.centerLED; i > this.centerLED - this.border; i--) {
+        for (let i = this.centerLED; i > this.centerLED - this.border && i > 0; i--) {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         strip.sync();
