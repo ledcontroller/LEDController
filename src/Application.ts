@@ -87,6 +87,7 @@ api.listen(function() {
 function exitApplication() : void {
     if (api !== null && api !== undefined) {
         api.close(() => {
+            strip.off();
             strip.shutdown(() => {
                 console.log("Bye!");
                 process.exit(0);

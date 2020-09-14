@@ -3,6 +3,7 @@ export interface IStripController {
   set(led: number, r: number, g: number, b: number, a: number): void
   sync(): void
   clear(): void
+  off(): void
 
   shutdown(callback: Function): void
   getLength(): number
