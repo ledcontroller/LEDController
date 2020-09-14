@@ -55,22 +55,3 @@ Authorization: Basic {{token}}
     ]
   }
 }
-
-###
-POST http://{{hostname}}:{{port}}/api/v1/notifications/centertoside HTTP/1.1
-Content-Type: application/json
-Authorization: Basic {{token}}
-
-{
-  "notification": {
-    "duration": 10,
-    "colors": [
-      {"r": 255, "g": 20, "b": 0, "a": 1},
-      {"r": 0, "g": 255, "b": 0, "a": 1}
-      //{"r": 0, "g": 0, "b": 255, "a": 1},
-      //{"r": 255, "g": 20, "b": 0, "a": 1},
-      //{"r": 0, "g": 255, "b": 0, "a": 1},
-      //{"r": 0, "g": 0, "b": 255, "a": 1}
-    ]
-  }
-}
