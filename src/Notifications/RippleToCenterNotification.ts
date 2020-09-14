@@ -69,7 +69,6 @@ export class RippleToCenterNotification implements INotification {
                 strip.set(strip.getLength() - i, this.color.r, this.color.g, this.color.b, this.color.a);
             }
         }
-        strip.sync();
 
         this.persBorder += this.ledsPerFrame;
         this.border = Math.round(this.persBorder);

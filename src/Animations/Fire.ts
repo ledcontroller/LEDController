@@ -49,7 +49,6 @@ export class Fire implements IAnimation{
             }
         }
     
-        strip.sync();
     }
 
     public getName(): string {

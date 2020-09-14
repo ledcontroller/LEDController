@@ -31,7 +31,6 @@ export class Blink implements IAnimation{
             if (++this.curColor >= this.colors.length) this.curColor = 0;
 
             strip.all(this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
-            strip.sync();
         }
     }
 

@@ -57,7 +57,6 @@ export class SideToSide implements IAnimation{
             this.direction = !this.direction
         }
 
-        strip.sync();
     }
 
     public getName(): string {

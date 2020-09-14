@@ -39,7 +39,6 @@ export class BlinkNotification implements INotification{
             }
 
             strip.all(this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
-            strip.sync();
         }
     }
 

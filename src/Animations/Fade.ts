@@ -43,7 +43,6 @@ export class Fade implements IAnimation{
             }
 
             strip.all(this.colorSteps[this.curStep].r, this.colorSteps[this.curStep].g, this.colorSteps[this.curStep].b, this.colorSteps[this.curStep].a);
-            strip.sync();
         }
         this.curFrame++;
     }

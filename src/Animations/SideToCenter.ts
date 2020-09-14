@@ -50,7 +50,6 @@ export class SideToCenter implements IAnimation{
             if (++this.curColor >= this.colors.length) this.curColor = 0;
         }
 
-        strip.sync();
     }
 
     public getName(): string {

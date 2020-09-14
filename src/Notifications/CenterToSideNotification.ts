@@ -44,7 +44,6 @@ export class CenterToSideNotification implements INotification{
         for (let i = this.centerLED; i > this.centerLED - this.border && i > 0; i--) {
             strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
-        strip.sync();
 
         this.border += this.ledsPreFrame;
 
