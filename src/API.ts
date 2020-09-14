@@ -49,6 +49,11 @@ export class API {
             let path = req.getPath();
             let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
             let parameters = req.body.animation;
+
+            if (!parameters) {
+                return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+
             parameters.ledCount = this.options.ledCount;
             
             try {
@@ -73,6 +78,11 @@ export class API {
         });
         
         this.server.post("/api/v1/notification/", (req, res, next) => {
+        
+            if (!req.body.notifications) {
+                return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+
             for(let notification of req.body.notifications) {
                 notification.ledCount = this.options.ledCount;
         
@@ -104,6 +114,11 @@ export class API {
             let path = req.getPath();
             let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
             let parameters = req.body.notification;
+            
+            if (!parameters) {
+                return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+            
             parameters.ledCount = this.options.ledCount;
             
             try {
