@@ -39,3 +39,16 @@ Authorization: Basic {{token}}
     ]
   }
 }
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/notifications/rippletocenter HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "notification": {
+    "duration": 60,
+    "color": {"r": 255, "g": 20, "b": 0, "a": 1},
+    "keepAnimationRunning": true
+  }
+}
