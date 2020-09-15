@@ -2,7 +2,6 @@ import { IAnimation } from "../Interfaces/IAnimation";
 import { Led } from "../Led";
 import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
-import { IStripController } from "../Interfaces/IStripController";
 
 interface ICenterToSideData {
     ledCount: number,
@@ -30,15 +29,17 @@ export class CenterToSide implements IAnimation{
         }
     }
 
-    public update(leds: Array<Led>, strip: IStripController): void {
+    public update(leds: Array<Led>): void {
 
         // Front
         for (let i = this.centerLED; i < this.centerLED + this.border && i <= this.ledcount; i++) {
-            strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
+            leds[i].color = this.colors[this.curColor];
+            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         // Back
         for (let i = this.centerLED; i > this.centerLED - this.border && i >= 0; i--) {
-            strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
+            leds[i].color = this.colors[this.curColor];
+            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
 
         this.persBorder += this.ledsPreFrame;
@@ -55,4 +56,6 @@ export class CenterToSide implements IAnimation{
     public getName(): string {
         return "CenterToSide";
     }
+
+    public onResume(leds: Array<Led>): void {}
 }

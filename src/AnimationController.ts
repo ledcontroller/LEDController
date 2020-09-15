@@ -3,6 +3,8 @@ import { IAnimation } from './Interfaces/IAnimation'
 import { INotification } from "./Interfaces/INotification";
 import { IStripController } from "./Interfaces/IStripController";
 import { Blink } from "./Animations/Blink";
+import { StationaryAnimation } from "./StationaryAnimation";
+import { IColor } from "./Interfaces/IColor";
 
 /**
  * AnimationController handles the playback of Animations and Notifications
@@ -18,6 +20,7 @@ export class AnimationController {
     private stopAfterNotification: boolean = false;
     private ups: number = 30;
     private loop: NodeJS.Timer;
+    private stationaryAnimations: { [id: string]: StationaryAnimation } = {};
 
     /**
      * AnimationController handles the playback of Animations and Notifications
@@ -30,6 +33,26 @@ export class AnimationController {
         for (let i = 0; i < this.strip.getLength(); i++) {
             this.leds.push(new Led({r: 0, g: 0, b: 0, a: 0}));
         }
+    }
+
+    /**
+     * Plays a Animation only at a portion of the Strip, the normal animation will continue to play
+     * Warning!!! the ledCount supplied to the Animations parameters hast to constraind to its stationary area
+     * @param id ID to reference this Animation later (will replace animation with same id)
+     * @param animation Animation to be played
+     * @param start First LED used by Animation
+     * @param end Last LED used by Animation
+     */
+    public addStationaryAnimation(id: string, animation: IAnimation, start: number, end: number): void {
+        this.stationaryAnimations[id] = new StationaryAnimation(animation, start, end, this.strip, this.leds);
+    }
+
+    /**
+     * Removes the Stationary Animation
+     * @param id ID to reference the Animation
+     */
+    public removeStationaryAnimation(id: string) {
+        delete this.stationaryAnimations[id];
     }
 
     /**
@@ -70,6 +93,8 @@ export class AnimationController {
                     this.stop();
                     this.clearLEDs();
                 } else {
+                    // Only call resume when animation is active
+                    this.animation.onResume(this.leds);
                     this.update();
                 }
             }
@@ -88,7 +113,22 @@ export class AnimationController {
      * Calls the Animation/Notification update function
      */
     public update() {
-        this.animation.update(this.leds, this.strip, this.afterNotificationAnimation);
+        this.animation.update(this.leds, this.afterNotificationAnimation);
+
+        if (!this.playingNotification) {
+            for (const id in this.stationaryAnimations) {
+                this.stationaryAnimations[id].update();
+            }
+        }
+
+        // sync changes to LEDs
+        let color: IColor;
+        for (let i = 0; i < this.leds.length; i++) {
+            color = this.leds[i].color;
+            this.strip.set(i, color.r, color.g, color.b, color.a);
+        }
+
+        this.strip.sync();
     }
 
     /**

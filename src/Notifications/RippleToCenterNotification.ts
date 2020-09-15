@@ -2,7 +2,6 @@ import { Led } from "../Led";
 import { IColor } from "../Interfaces/IColor";
 import { INotification } from "../Interfaces/INotification";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
-import { IStripController } from "../Interfaces/IStripController";
 import { IAnimation } from "../Interfaces/IAnimation";
 
 interface IRippleToCenterNotificationData {
@@ -46,43 +45,13 @@ export class RippleToCenterNotification implements INotification {
         this.doneCallback = doneCallback;
     }
 
-    public update(led: Array<Led>, strip: IStripController, animation: IAnimation): void {
-        if (this.keepAnimationRunning) {
-            animation.update(led, strip, animation);
-        } else {
-            strip.clear();
-        }
-
-        let curLed: number = 0;
-        let isRipple: boolean = false;
-        let curAmount: number = 0;
-
-        for (let i = this.border; i > 0; i--) {
-            // Switch leds off after x amount of leds have been lit
-            if (++curLed%this.size == 0) {
-                isRipple = !isRipple;
-                if (curAmount++ == this.amount + 1) break;
-            }
-
-            if (isRipple && i < this.centerLED) {
-                strip.set(i, this.color.r, this.color.g, this.color.b, this.color.a);
-                strip.set(strip.getLength() - i, this.color.r, this.color.g, this.color.b, this.color.a);
-            }
-        }
-
-        this.persBorder += this.ledsPerFrame;
-        this.border = Math.round(this.persBorder);
-
-        if (this.border > this.centerLED + this.amount * this.size * 2 - this.size) {
-            this.persBorder = this.border = 0;
-
-            if (++this.curCycle == this.cycles) {
-                this.doneCallback();
-            }
-        }
+    public update(led: Array<Led>, animation: IAnimation): void {
+        //TODO: Didn't work, need to reimplement
     }
 
     public getName(): string {
         return "RippleToCenter";
     }
+
+    public onResume(leds: Array<Led>): void {}
 }

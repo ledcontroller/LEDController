@@ -2,7 +2,6 @@ import { IAnimation } from "../Interfaces/IAnimation";
 import { Led } from "../Led";
 import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
-import { IStripController } from "../Interfaces/IStripController";
 
 interface IFireData {
     ledCount: number,  
@@ -15,8 +14,9 @@ export class Fire implements IAnimation{
     colors: Array<IColor>;
     minFadeDuration: number;
     maxFadeDuration: number;
-    pixelOntime: Array<number>;
+    pixelOntime: Array<number> = [];
     ledcount: number;
+    ledsCopy: Array<Led> = [];
 
     constructor(requestParameter: IFireData) {
         this.colors = requestParameter.colors;
@@ -24,9 +24,9 @@ export class Fire implements IAnimation{
         this.minFadeDuration = requestParameter.minFadeDuration;
         this.ledcount = requestParameter.ledCount;
 
-        this.pixelOntime = new Array()
         for (let i = 0; i < this.ledcount; i++) {
             this.pixelOntime.push(0);
+            this.ledsCopy.push(new Led({r: 0, g: 0, b: 0, a: 0}));
         }
         
         if (!(this.colors && this.minFadeDuration && this.minFadeDuration)) {
@@ -34,24 +34,26 @@ export class Fire implements IAnimation{
         }
     }
 
-    public update(leds: Array<Led>, strip: IStripController): void {
-        for (let i = 0; i < this.ledcount; i++) {
+    public update(leds: Array<Led>): void {
+        for (let i = 0; i < leds.length; i++) {
             if (this.pixelOntime[i] <= 0) {
                 // change color
                 this.pixelOntime[i] = Math.round(this.minFadeDuration + (Math.random() * (this.maxFadeDuration - this.minFadeDuration)));
-
-                let color : IColor = this.colors[Math.round(Math.random() * (this.colors.length - 1))]
-                leds[i].color = color;
-
-                strip.set(i, color.r, color.g, color.b, color.a);
+                this.ledsCopy[i].color = this.colors[Math.round(Math.random() * (this.colors.length - 1))]; 
             } else {
                 this.pixelOntime[i]--;
             }
+
+            leds[i].color = this.ledsCopy[i].color;
         }
     
     }
 
     public getName(): string {
         return "Fire";
+    }
+
+    public onResume(leds: Array<Led>): void {
+        this.ledsCopy = leds.slice();
     }
 }

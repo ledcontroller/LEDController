@@ -2,7 +2,6 @@ import { IAnimation } from "../Interfaces/IAnimation";
 import { Led } from "../Led";
 import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
-import { IStripController } from "../Interfaces/IStripController";
 
 interface IFadeData {
     duration: number,  // in Frames
@@ -31,9 +30,9 @@ export class Fade implements IAnimation{
         this.calculateNextColorAndSteps();
     }
 
-    public update(leds: Array<Led>, strip: IStripController): void {
+    public update(leds: Array<Led>): void {
 
-        if (this.curFrame == this.smoothness) {
+        if (this.curFrame++ == this.smoothness) {
             this.curFrame = 0;
             this.curStep++;
 
@@ -42,9 +41,12 @@ export class Fade implements IAnimation{
                 this.curStep = 0;
             }
 
-            strip.all(this.colorSteps[this.curStep].r, this.colorSteps[this.curStep].g, this.colorSteps[this.curStep].b, this.colorSteps[this.curStep].a);
+            //strip.all(this.colorSteps[this.curStep].r, this.colorSteps[this.curStep].g, this.colorSteps[this.curStep].b, this.colorSteps[this.curStep].a);
         }
-        this.curFrame++;
+
+        for (let i = 0; i < leds.length; i++) {
+            leds[i].color = this.colorSteps[this.curStep]                 
+        }
     }
 
     private calculateNextColorAndSteps(): void {
@@ -81,4 +83,6 @@ export class Fade implements IAnimation{
     public getName(): string {
         return "Fade";
     }
+
+    public onResume(leds: Array<Led>): void {}
 }
