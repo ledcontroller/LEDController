@@ -10,13 +10,13 @@ interface IFadeData {
 }
 
 export class Fade implements IAnimation{
-    colors: Array<IColor>;
-    curColor: number = 0;
-    steps: number = 0;
-    colorSteps: Array<IColor>;
-    curStep: number = 0;
-    smoothness: number;
-    curFrame: number = 0;
+    private colors: Array<IColor>;
+    private curColor: number = 0;
+    private steps: number = 0;
+    private colorSteps: Array<IColor>;
+    private curStep: number = 0;
+    private smoothness: number;
+    private curFrame: number = 0;
 
     constructor(requestParameter: IFadeData) {
         this.colors = requestParameter.colors;
@@ -40,8 +40,6 @@ export class Fade implements IAnimation{
                 this.calculateNextColorAndSteps();
                 this.curStep = 0;
             }
-
-            //strip.all(this.colorSteps[this.curStep].r, this.colorSteps[this.curStep].g, this.colorSteps[this.curStep].b, this.colorSteps[this.curStep].a);
         }
 
         for (let i = 0; i < leds.length; i++) {
@@ -85,4 +83,5 @@ export class Fade implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {}
+    public onInit(leds: Array<Led>): void {}
 }

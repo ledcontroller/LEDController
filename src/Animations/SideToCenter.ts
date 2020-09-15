@@ -4,25 +4,24 @@ import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
 
 interface ISideToCenterData {
-    ledCount: number,
     duration: number,
     colors: Array<IColor>
 }
 
 export class SideToCenter implements IAnimation{
-    colors: Array<IColor>;
-    curColor: number = 0;
-    ledsPerFrame: number;
-    border: number = 0;
-    percBorder: number = 0;
-    centerLED: number = 0;
+    private colors: Array<IColor>;
+    private curColor: number = 0;
+    private ledsPerFrame: number;
+    private border: number = 0;
+    private percBorder: number = 0;
+    private centerLED: number = 0;
+    private duration: number;
 
     constructor(requestParameter: ISideToCenterData) {
         this.colors = requestParameter.colors;
-        this.ledsPerFrame = (requestParameter.ledCount * 0.5) / requestParameter.duration;
-        this.centerLED = Math.round(requestParameter.ledCount * 0.5);
+        this.duration = requestParameter.duration;
 
-        if (!(this.colors && this.ledsPerFrame)) {
+        if (!(this.colors && this.duration)) {
             throw new ParameterParsingError("Wrong parameter provided");
         }
     }
@@ -32,12 +31,10 @@ export class SideToCenter implements IAnimation{
         // Front
         for (let i = 0; i < this.border; i++) {
             leds[i].color = this.colors[this.curColor];
-            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         // Back
         for (let i = leds.length - 1; i > leds.length - this.border; i--) {
             leds[i].color = this.colors[this.curColor];
-            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
 
         this.percBorder += this.ledsPerFrame;
@@ -62,4 +59,9 @@ export class SideToCenter implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {}
+
+    public onInit(leds: Array<Led>): void {
+        this.centerLED = Math.round(leds.length * 0.5);
+        this.ledsPerFrame = (leds.length * 0.5) / this.duration;
+    }
 }

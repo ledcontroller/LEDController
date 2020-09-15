@@ -5,7 +5,6 @@ import { ParameterParsingError } from "../Errors/ParameterParsingError";
 import { IAnimation } from "../Interfaces/IAnimation";
 
 interface IRippleToCenterNotificationData {
-    ledCount: number,
     cycleDuration: number,
     cycles: number,
     size: number,
@@ -15,22 +14,21 @@ interface IRippleToCenterNotificationData {
 }
 
 export class RippleToCenterNotification implements INotification {
-    color: IColor;
-    cycles: number;
-    centerLED: number;
-    amount: number;
-    doneCallback: Function;
-    curCycle: number = 0;
-    ledsPerFrame: number;
-    border: number = 0;
-    persBorder: number = 0;
-    size: number;
-    keepAnimationRunning: boolean;
+    private color: IColor;
+    private cycles: number;
+    private centerLED: number;
+    private amount: number;
+    private doneCallback: Function;
+    private curCycle: number = 0;
+    private ledsPerFrame: number;
+    private border: number = 0;
+    private persBorder: number = 0;
+    private size: number;
+    private keepAnimationRunning: boolean;
 
     constructor(requestParameter: IRippleToCenterNotificationData) {
         this.color = requestParameter.color;
         this.cycles = requestParameter.cycles || 4;
-        this.centerLED = Math.round(requestParameter.ledCount / 2);
         this.amount = requestParameter.amount || 3;
         this.ledsPerFrame = this.centerLED / requestParameter.cycleDuration;
         this.size = requestParameter.size || 10;
@@ -47,6 +45,7 @@ export class RippleToCenterNotification implements INotification {
 
     public update(led: Array<Led>, animation: IAnimation): void {
         //TODO: Didn't work, need to reimplement
+        this.doneCallback();
     }
 
     public getName(): string {
@@ -54,4 +53,8 @@ export class RippleToCenterNotification implements INotification {
     }
 
     public onResume(leds: Array<Led>): void {}
+
+    public onInit(leds: Array<Led>): void {
+        this.centerLED = Math.round(leds.length * 0.5);
+    }
 }

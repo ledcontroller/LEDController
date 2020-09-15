@@ -9,11 +9,11 @@ interface IBlinkNotificationData {
 }
 
 export class BlinkNotification implements INotification{
-    colors: Array<IColor>;
-    activeTime: number;
-    curColor: number = 0;
-    frameCounter: number = 0;
-    finishCallback: Function;
+    private colors: Array<IColor>;
+    private activeTime: number;
+    private curColor: number = 0;
+    private frameCounter: number = 0;
+    private finishCallback: Function;
 
     constructor(requestParameter: IBlinkNotificationData) {
         this.colors = requestParameter.colors;
@@ -48,4 +48,5 @@ export class BlinkNotification implements INotification{
     }
 
     public onResume(leds: Array<Led>): void {}
+    public onInit(leds: Array<Led>): void {}
 }

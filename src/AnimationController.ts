@@ -44,7 +44,7 @@ export class AnimationController {
      * @param end Last LED used by Animation
      */
     public addStationaryAnimation(id: string, animation: IAnimation, start: number, end: number): void {
-        this.stationaryAnimations[id] = new StationaryAnimation(animation, start, end, this.strip, this.leds);
+        this.stationaryAnimations[id] = new StationaryAnimation(animation, start, end, this.leds);
     }
 
     /**
@@ -57,14 +57,16 @@ export class AnimationController {
 
     /**
      * Changes the Animation
-     * @param newAnimation New Animation ot be played
+     * @param animation New Animation ot be played
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
-    public changeAnimation(newAnimation: IAnimation): void {
+    public changeAnimation(animation: IAnimation): void {
+        animation.onInit(this.leds);
+
         if (this.playingNotification) {
-            this.afterNotificationAnimation = newAnimation;
+            this.afterNotificationAnimation = animation;
         } else {
-            this.animation = newAnimation;
+            this.animation = animation;
         }
     }
 
@@ -99,6 +101,8 @@ export class AnimationController {
                 }
             }
         });
+
+        notification.onInit(this.leds);
         this.animation = notification;
         this.playingNotification = true;
 

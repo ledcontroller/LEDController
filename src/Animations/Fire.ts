@@ -4,30 +4,22 @@ import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
 
 interface IFireData {
-    ledCount: number,  
     minFadeDuration: number,
     maxFadeDuration: number,
     colors: Array<IColor>
 }
 
 export class Fire implements IAnimation{
-    colors: Array<IColor>;
-    minFadeDuration: number;
-    maxFadeDuration: number;
-    pixelOntime: Array<number> = [];
-    ledcount: number;
-    ledsCopy: Array<Led> = [];
+    private colors: Array<IColor>;
+    private minFadeDuration: number;
+    private maxFadeDuration: number;
+    private pixelOntime: Array<number> = [];
+    private ledsCopy: Array<Led> = [];
 
     constructor(requestParameter: IFireData) {
         this.colors = requestParameter.colors;
         this.maxFadeDuration = requestParameter.maxFadeDuration;
         this.minFadeDuration = requestParameter.minFadeDuration;
-        this.ledcount = requestParameter.ledCount;
-
-        for (let i = 0; i < this.ledcount; i++) {
-            this.pixelOntime.push(0);
-            this.ledsCopy.push(new Led({r: 0, g: 0, b: 0, a: 0}));
-        }
         
         if (!(this.colors && this.minFadeDuration && this.minFadeDuration)) {
             throw new ParameterParsingError("Wrong parameter provided");
@@ -54,6 +46,13 @@ export class Fire implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {
+        this.ledsCopy = leds.slice();
+    }
+
+    public onInit(leds: Array<Led>): void {
+        for (let i = 0; i < leds.length; i++) {
+            this.pixelOntime.push(0);
+        }
         this.ledsCopy = leds.slice();
     }
 }

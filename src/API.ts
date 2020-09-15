@@ -1,7 +1,7 @@
 import { AnimationController } from "./AnimationController";
 import { Server } from "restify";
-import {ParameterParsingError} from "./Errors/ParameterParsingError";
-import {AnimationNotRunningError} from "./Errors/AnimationNotRunningError";
+import { ParameterParsingError } from "./Errors/ParameterParsingError";
+import { AnimationNotRunningError } from "./Errors/AnimationNotRunningError";
 import { AnimationStore } from "./AnimationStore";
 import { AnimationNotFoundError } from "./Errors/AnimationNotFoundError";
 
@@ -54,8 +54,6 @@ export class API {
                 return next(new ERRORS.BadRequestError("Bad Body"));
             }
 
-            parameters.ledCount = this.options.ledCount;
-            
             try {
                 let animation = this.animationStore.getAnimation(animationName, parameters);           
                 this.animationController.changeAnimation(animation);
@@ -84,7 +82,6 @@ export class API {
             }
 
             for(let notification of req.body.notifications) {
-                notification.ledCount = this.options.ledCount;
         
                 //Get Animation Class and Initialize with Parameters from Request
                 if (!notification.parameters) {
@@ -118,8 +115,6 @@ export class API {
             if (!parameters) {
                 return next(new ERRORS.BadRequestError("Bad Body"));
             }
-            
-            parameters.ledCount = this.options.ledCount;
             
             try {
                 let notification = this.animationStore.getNotification(notificationName, parameters);            
@@ -198,5 +193,4 @@ export interface APIOptions {
     port: number;
     version: string;
     token: string;
-    ledCount: number;
 }

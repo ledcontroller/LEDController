@@ -4,27 +4,24 @@ import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
 
 interface ICenterToSideData {
-    ledCount: number,
     duration: number,
     colors: Array<IColor>
 }
 
 export class CenterToSide implements IAnimation{
-    colors: Array<IColor>;
-    curColor: number = 0;
-    ledsPreFrame: number;
-    border: number = 0;
-    persBorder: number = 0;
-    centerLED: number = 0;
-    ledcount: number = 0;
+    private colors: Array<IColor>;
+    private curColor: number = 0;
+    private ledsPreFrame: number;
+    private border: number = 0;
+    private persBorder: number = 0;
+    private centerLED: number = 0;
+    private duration: number;
 
     constructor(requestParameter: ICenterToSideData) {
         this.colors = requestParameter.colors;
-        this.centerLED = Math.round(requestParameter.ledCount * 0.5);
-        this.ledsPreFrame = this.centerLED / requestParameter.duration;
-        this.ledcount = requestParameter.ledCount;
+        this.duration = requestParameter.duration;
 
-        if (!(this.colors && this.centerLED && this.ledsPreFrame)) {
+        if (!(this.colors && this.duration)) {
             throw new ParameterParsingError("Wrong parameter provided");
         }
     }
@@ -32,14 +29,12 @@ export class CenterToSide implements IAnimation{
     public update(leds: Array<Led>): void {
 
         // Front
-        for (let i = this.centerLED; i < this.centerLED + this.border && i <= this.ledcount; i++) {
+        for (let i = this.centerLED; i < this.centerLED + this.border && i <= leds.length; i++) {
             leds[i].color = this.colors[this.curColor];
-            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
         // Back
         for (let i = this.centerLED; i > this.centerLED - this.border && i >= 0; i--) {
             leds[i].color = this.colors[this.curColor];
-            //strip.set(i, this.colors[this.curColor].r, this.colors[this.curColor].g, this.colors[this.curColor].b, this.colors[this.curColor].a);
         }
 
         this.persBorder += this.ledsPreFrame;
@@ -58,4 +53,9 @@ export class CenterToSide implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {}
+
+    public onInit(leds: Array<Led>): void {
+        this.centerLED = Math.round(leds.length * 0.5);
+        this.ledsPreFrame = this.centerLED / this.duration;
+    }
 }

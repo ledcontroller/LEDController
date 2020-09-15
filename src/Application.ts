@@ -39,8 +39,7 @@ const animationController: AnimationController = new AnimationController(strip);
 const API_OPTIONS : APIOptions = {
     port: API_PORT,
     version: VERSION,
-    token: TOKEN,
-    ledCount: LEDCOUNT
+    token: TOKEN
 };
 
 

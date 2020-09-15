@@ -1,24 +1,31 @@
 import { IAnimation } from "./Interfaces/IAnimation";
-import { IStripController } from "./Interfaces/IStripController";
 import { Led } from "./Led";
-import { StationaryStripController } from "./StationaryStripController";
 
 export class StationaryAnimation {
 
-    private strip: IStripController;
     private animation: IAnimation;
     private ledRef: Array<Led>;
     private start: number;
     private end: number;
 
-    constructor(animation: IAnimation, start: number, end: number, hardwareStrip: IStripController, leds: Array<Led>) {
+    /**
+     * Creates a new Stationary Animation, wrapping the LEDs passed to the Animation in order to constrain it to a portion of the Strip
+     * This will also call onInit with the right LED Array portion
+     * @param animation Animation to play
+     * @param start First LED for this Animation
+     * @param end Last LED for this Animation
+     * @param leds Original LED Array
+     */
+    constructor(animation: IAnimation, start: number, end: number, leds: Array<Led>) {
     
-        this.strip = new StationaryStripController(hardwareStrip, start, end);
         this.animation = animation;
         this.ledRef = leds;
         this.start = start;
         this.end = end;
 
+        const portionOfLEDs: Array<Led> = this.ledRef.slice(this.start, this.end + 1);
+        this.animation.onInit(portionOfLEDs);
+        // onInit should not and can't change LEDs
     }
 
     public update(): void {

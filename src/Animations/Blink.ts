@@ -9,10 +9,10 @@ interface IBlinkData {
 }
 
 export class Blink implements IAnimation{
-    colors: Array<IColor>;
-    activeTime: number;
-    curColor: number = 0;
-    frameCounter: number = 0;
+    private colors: Array<IColor>;
+    private activeTime: number;
+    private curColor: number = 0;
+    private frameCounter: number = 0;
 
     constructor(requestParameter: IBlinkData) {
         this.colors = requestParameter.colors;
@@ -40,4 +40,5 @@ export class Blink implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {}
+    public onInit(leds: Array<Led>): void {}
 }

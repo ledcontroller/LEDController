@@ -4,27 +4,25 @@ import { IColor } from "../Interfaces/IColor";
 import { ParameterParsingError } from "../Errors/ParameterParsingError";
 
 interface ISideToSideData {
-    ledCount: number,
     duration: number,
     colors: Array<IColor>
 }
 
 export class SideToSide implements IAnimation{
-    colors: Array<IColor>;
-    curColor: number = 0;
-    prefColor: number = 0;
-    ledsPerFrame: number;
-    direction: boolean = true;
-    border: number = 0;
-    percBorder: number = 0; // Used to calc LED Speeds below 0
-    ledcount: number = 0;
+    private colors: Array<IColor>;
+    private curColor: number = 0;
+    private prefColor: number = 0;
+    private ledsPerFrame: number;
+    private direction: boolean = true;
+    private border: number = 0;
+    private percBorder: number = 0; // Used to calc LED Speeds below 0
+    private duration: number;
 
     constructor(requestParameter: ISideToSideData) {
         this.colors = requestParameter.colors;
-        this.ledsPerFrame = requestParameter.ledCount / requestParameter.duration;
-        this.ledcount = requestParameter.ledCount;
+        this.duration = requestParameter.duration;
 
-        if (!(this.colors && this.ledsPerFrame)) {
+        if (!(this.colors && this.duration)) {
             throw new ParameterParsingError("Wrong parameter provided");
         }
     }
@@ -73,4 +71,8 @@ export class SideToSide implements IAnimation{
     }
 
     public onResume(leds: Array<Led>): void {}
+
+    public onInit(leds: Array<Led>): void {
+        this.ledsPerFrame = leds.length / this.duration;
+    }
 }
