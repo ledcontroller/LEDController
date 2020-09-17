@@ -3,8 +3,8 @@ import { IAnimation } from './Interfaces/IAnimation'
 import { INotification } from "./Interfaces/INotification";
 import { IStripController } from "./Interfaces/IStripController";
 import { Blink } from "./Animations/Blink";
-import { StationaryAnimation } from "./StationaryAnimation";
 import { IColor } from "./Interfaces/IColor";
+import { PersistentNotificationMode, PersistentNotificationsManager } from "./PersistentNotificationsManager";
 
 /**
  * AnimationController handles the playback of Animations and Notifications
@@ -12,7 +12,7 @@ import { IColor } from "./Interfaces/IColor";
 export class AnimationController {
     private animation: IAnimation = new Blink({ colors: [{r: 0, g: 255, b: 0, a: 0.2}], duration: 1000});
     private leds: Array<Led> = [];
-    private strip: IStripController;
+    private strip: IStripController;1
     private playingNotification: boolean = false;
     private notificationStack: Array<INotification> = [];
     private afterNotificationAnimation: IAnimation;
@@ -20,7 +20,7 @@ export class AnimationController {
     private stopAfterNotification: boolean = false;
     private ups: number = 30;
     private loop: NodeJS.Timer;
-    private stationaryAnimations: { [id: string]: StationaryAnimation } = {};
+    private persistentAnimationsManager: PersistentNotificationsManager = new PersistentNotificationsManager(70, 5, PersistentNotificationMode.RightToLeft);
 
     /**
      * AnimationController handles the playback of Animations and Notifications
@@ -36,23 +36,27 @@ export class AnimationController {
     }
 
     /**
-     * Plays a Animation only at a portion of the Strip, the normal animation will continue to play
-     * Warning!!! the ledCount supplied to the Animations parameters hast to constraind to its stationary area
-     * @param id ID to reference this Animation later (will replace animation with same id)
-     * @param animation Animation to be played
-     * @param start First LED used by Animation
-     * @param end Last LED used by Animation
+     * Add a Animation as a Notification
+     * The Notification will be persistent until it is removed again
+     * Animations will be added one after the other 
+     * @param id ID to reference this Animation
+     * @param animation The Animation to persist as a Notification
      */
-    public addStationaryAnimation(id: string, animation: IAnimation, start: number, end: number): void {
-        this.stationaryAnimations[id] = new StationaryAnimation(animation, start, end, this.leds);
+    public addPersistentNotification(id: string, animation: IAnimation): void {
+        this.persistentAnimationsManager.add(id, animation, this.leds);
     }
 
     /**
-     * Removes the Stationary Animation
-     * @param id ID to reference the Animation
+     * Removes a persistent Animation
+     * All subsequent Animations will shift to close possible gaps
+     * @param id ID used to add the Animation
      */
-    public removeStationaryAnimation(id: string) {
-        delete this.stationaryAnimations[id];
+    public removePersistentNotification(id: string): void {
+        this.persistentAnimationsManager.remove(id);
+    }
+
+    public clearPersistentNotifications(): void {
+        this.persistentAnimationsManager.removeAll();
     }
 
     /**
@@ -119,11 +123,7 @@ export class AnimationController {
     public update() {
         this.animation.update(this.leds, this.afterNotificationAnimation);
 
-        if (!this.playingNotification) {
-            for (const id in this.stationaryAnimations) {
-                this.stationaryAnimations[id].update();
-            }
-        }
+        if (!this.playingNotification) this.persistentAnimationsManager.update(this.leds);
 
         // sync changes to LEDs
         let color: IColor;

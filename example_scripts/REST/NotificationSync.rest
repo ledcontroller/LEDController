@@ -1,0 +1,92 @@
+@hostname = LED-Controller
+@port = 1234
+@token = token SUPERSECRETCODE
+
+### Remove
+GET http://{{hostname}}:{{port}}/api/v1/persistent/animation/remove/t2 HTTP/1.1
+Authorization: Basic {{token}}
+
+### Clear
+GET http://{{hostname}}:{{port}}/api/v1/persistent/animation/clear HTTP/1.1
+Authorization: Basic {{token}}
+
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/persistent/animation/add/blink HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 30,
+    "colors": [
+      {"r": 255, "g": 100, "b": 0, "a": 0.5}
+    ]
+  },
+  "id": "t1"
+}
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/persistent/animation/add/blink HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 30,
+    "colors": [
+      {"r": 0, "g": 255, "b": 100, "a": 0.5}
+    ]
+  },
+  "id": "t2"
+}
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/persistent/animation/add/blink HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 30,
+    "colors": [
+      {"r": 100, "g": 0, "b": 255, "a": 0.5}
+    ]
+  },
+  "id": "t3"
+}
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/persistent/animation/add/sidetoside HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 60,
+    "colors": [
+      {"r": 255, "g": 20, "b": 0, "a": 1},
+      {"r": 0, "g": 255, "b": 0, "a": 1},
+      {"r": 0, "g": 0, "b": 255, "a": 1}
+    ]
+  },
+  "id": "test1"
+}
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/persistent/animation/add/fade HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 10,
+    "smoothness": 1,
+    "colors": [
+      {"r": 255, "g": 20, "b": 0, "a": 0.5},
+      {"r": 0, "g": 255, "b": 0, "a": 0.5},
+      {"r": 0, "g": 0, "b": 255, "a": 0.5}
+    ]
+  },
+  "id": "test2"
+}

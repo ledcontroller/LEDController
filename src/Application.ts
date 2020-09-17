@@ -3,7 +3,7 @@ import { IStripController } from "./Interfaces/IStripController";
 import { API, APIOptions } from "./API";
 
 const FS = require("fs");
-const VERSION: string = "0.2.1";
+const VERSION: string = "0.3.0";
 
 // Welcome
 console.log('LED-Controller %s', VERSION);

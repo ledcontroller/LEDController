@@ -28,6 +28,8 @@ export class API {
 
 
     private registerRoutes(): void {
+        //TODO: Better type checking (what if parameters is not an object but rather a string etc.) 
+
         // Check if the token is used in basic authorization as password for user "token"
         this.server.use(RSF.plugins.authorizationParser());
         this.server.use((req, res, next) => {
@@ -105,6 +107,61 @@ export class API {
             res.contentType = "json";
             res.send({"status": 200, "message": "Added Notifications to queue"});
             return next();
+        });
+
+        this.server.post("/api/v1/persistent/animation/add/*", (req, res, next) => {
+
+            let path = req.getPath();
+            let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
+            let parameters = req.body.animation;
+            let id = req.body.id;
+
+            if (!(parameters && id)) {
+                return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+
+            try {
+                let animation = this.animationStore.getAnimation(animationName, parameters);
+                this.animationController.addPersistentNotification(id, animation);          
+            } catch (error) {
+                if (error instanceof ParameterParsingError) {
+                    return next(new ERRORS.BadRequestError(error.message));
+                }
+                if (error instanceof AnimationNotRunningError) {
+                    return next(new ERRORS.ServiceUnavailableError(error.message));
+                }
+                if (error instanceof AnimationNotFoundError) {
+                    return next(new ERRORS.NotFoundError(error.message));
+                }
+                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+            }
+
+            res.contentType = "json";
+            res.send({"status": 200, "message": "Added Persistent Animation"});
+            return next();
+
+        });
+
+        this.server.get("/api/v1/persistent/animation/remove/*", (req, res, next) => {
+
+            let path = req.getPath();
+            let animationID = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
+
+            this.animationController.removePersistentNotification(animationID);
+
+            res.contentType = "json";
+            res.send({"status": 200, "message": "Removed Persistent Animation"});
+            return next();
+
+        });
+
+        this.server.get("/api/v1/persistent/animation/clear", (req, res, next) => {
+            this.animationController.clearPersistentNotifications();
+
+            res.contentType = "json";
+            res.send({"status": 200, "message": "Cleared Persistent Animations"});
+            return next();
+
         });
         
         this.server.post("/api/v1/notifications/*", (req, res, next) => {
