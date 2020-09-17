@@ -20,7 +20,7 @@ export class AnimationController {
     private stopAfterNotification: boolean = false;
     private ups: number = 30;
     private loop: NodeJS.Timer;
-    private persistentAnimationsManager: PersistentNotificationsManager = new PersistentNotificationsManager(70, 5, PersistentNotificationMode.RightToLeft);
+    private persistentAnimationsManager: PersistentNotificationsManager = new PersistentNotificationsManager(70, 5, this.leds, PersistentNotificationMode.RightToLeft);
 
     /**
      * AnimationController handles the playback of Animations and Notifications
@@ -43,7 +43,7 @@ export class AnimationController {
      * @param animation The Animation to persist as a Notification
      */
     public addPersistentNotification(id: string, animation: IAnimation): void {
-        this.persistentAnimationsManager.add(id, animation, this.leds);
+        this.persistentAnimationsManager.add(id, animation);
     }
 
     /**
@@ -123,7 +123,7 @@ export class AnimationController {
     public update() {
         this.animation.update(this.leds, this.afterNotificationAnimation);
 
-        if (!this.playingNotification) this.persistentAnimationsManager.update(this.leds);
+        if (!this.playingNotification) this.persistentAnimationsManager.update();
 
         // sync changes to LEDs
         let color: IColor;

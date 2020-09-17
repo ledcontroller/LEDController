@@ -10,6 +10,7 @@ export class PersistentNotificationsManager {
     private notificationLength: number;
     private nextLED: number;
     private startLED: number;
+    private leds: Array<Led>;
 
     /**
      * Create a new PersistentNotificationsManager
@@ -19,10 +20,12 @@ export class PersistentNotificationsManager {
      * This confusing naming is persistent (hah get it :)) throughout all my code and only explained here :)
      * @param startLED First LED Animations will start at.
      * @param notificationLength Number of LEDs per Animations
+     * @param leds Reference to main LED Array
      */
-    constructor(startLED: number, notificationLength: number, mode?: PersistentNotificationMode) {
+    constructor(startLED: number, notificationLength: number, leds: Array<Led>, mode?: PersistentNotificationMode) {
         this.nextLED = this.startLED = startLED;
         this.notificationLength = notificationLength;
+        this.leds = leds;
         if (mode) {
             this.mode = mode;
         }
@@ -33,11 +36,11 @@ export class PersistentNotificationsManager {
      * @param id ID of the Animation to reference it later
      * @param animation Animation to add
      */
-    public add(id: string, animation: IAnimation, leds: Array<Led>): void {
+    public add(id: string, animation: IAnimation): void {
         
         if (this.stationaryAnimations.hasOwnProperty(id)) {
             this.stationaryAnimations[id].changeAnimation(animation);
-            this.stationaryAnimations[id].onInit(leds);
+            this.stationaryAnimations[id].onInit(this.leds);
         } else {
 
             let stationaryAnimation: StationaryAnimation;
@@ -56,7 +59,7 @@ export class PersistentNotificationsManager {
                 break;
             }
 
-            stationaryAnimation.onInit(leds);
+            stationaryAnimation.onInit(this.leds);
             this.stationaryAnimations[id] = stationaryAnimation;
             this.stationaryAnimationsOrdered.push(stationaryAnimation);
         }
@@ -115,9 +118,9 @@ export class PersistentNotificationsManager {
      * Updates all PersistentNotifications and writes changes back to provided LED Array
      * @param leds Reference to Orignal LEDs
      */
-    public update(leds: Array<Led>): void {
+    public update(): void {
         for (const id in this.stationaryAnimations) {
-            this.stationaryAnimations[id].update(leds);
+            this.stationaryAnimations[id].update(this.leds);
         }
     }
 }
