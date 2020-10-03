@@ -103,3 +103,17 @@ Authorization: Basic {{token}}
     ]
   }
 }
+
+###
+POST http://{{hostname}}:{{port}}/api/v1/animations/blink HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "animation": {
+    "duration": 60,
+    "colors": [
+      {"r": 0, "g": 0, "b": 0, "a": 0}
+    ]
+  }
+}

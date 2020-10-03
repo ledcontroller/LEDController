@@ -12,6 +12,19 @@ Authorization: Basic {{token}}
   "update_per_second": 60
 }
 
+###                                                  
+POST http://{{hostname}}:{{port}}/api/v1/persistent/settings/mode HTTP/1.1
+Content-Type: application/json
+Authorization: Basic {{token}}
+
+{
+  "options": {
+    "mode": 1,
+    "startLED": 120
+  }
+}
+
+
 ### STOP
 GET http://{{hostname}}:{{port}}/api/v1/stop HTTP/1.1
 Authorization: Basic {{token}}

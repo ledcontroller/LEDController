@@ -55,8 +55,22 @@ export class AnimationController {
         this.persistentAnimationsManager.remove(id);
     }
 
+    /**
+     * Removes all Persistent Notifications
+     */
     public clearPersistentNotifications(): void {
         this.persistentAnimationsManager.removeAll();
+    }
+
+    /**
+     * Changes the Mode and sets new start position.
+     * Can also change Notification length 
+     * @param mode New Mode
+     * @param startLED New start position
+     * @param notificationLength Optional: new length of Notifications
+     */
+    public changePersistentNotificationsManagerMode(mode: PersistentNotificationMode, startLED: number, notificationLength?: number) {
+        this.persistentAnimationsManager.changeMode(mode, startLED, notificationLength);
     }
 
     /**

@@ -3,7 +3,7 @@
 @token = token SUPERSECRETCODE
 
 ### Remove
-GET http://{{hostname}}:{{port}}/api/v1/persistent/animation/remove/t2 HTTP/1.1
+GET http://{{hostname}}:{{port}}/api/v1/persistent/animation/remove/test1 HTTP/1.1
 Authorization: Basic {{token}}
 
 ### Clear

@@ -105,6 +105,71 @@ export class PersistentNotificationsManager {
 
     }
 
+    private rePlaceNotifications() {
+
+        this.nextLED = this.startLED;
+
+        switch (this.mode) {
+            case PersistentNotificationMode.LeftToRight:
+            
+                for (let i = 0; i < this.stationaryAnimationsOrdered.length; i++) {
+                    this.stationaryAnimationsOrdered[i].changePosition(this.nextLED - this.notificationLength + 1, this.nextLED); // +1 because this.nextLED is the first LED and counts towards the length
+                    this.stationaryAnimationsOrdered[i].onInit(this.leds);
+                    this.nextLED += this.notificationLength;
+                }
+
+            break;
+            case PersistentNotificationMode.RightToLeft:
+            
+                for (let i = 0; i < this.stationaryAnimationsOrdered.length; i++) {
+                    this.stationaryAnimationsOrdered[i].changePosition(this.nextLED, this.nextLED + this.notificationLength - 1); // -1 because this.nextLED is the first LED and counts towards the length
+                    this.stationaryAnimationsOrdered[i].onInit(this.leds);
+                    this.nextLED -= this.notificationLength;
+                }
+
+            break;
+        }
+
+    }
+    
+    /**
+     * Changes the length of Notifications
+     * @param length New length
+     */
+    public changeNotificationLength(length: number) {
+        this.notificationLength = length;
+        this.rePlaceNotifications();
+    }
+
+    /**
+     * Changes the Mode and sets new start position.
+     * Can also change Notification length 
+     * @param mode New Mode
+     * @param start New start position
+     * @param notificationLength Optional: new length of Notifications
+     */
+    public changeMode(mode: PersistentNotificationMode, start: number, notificationLength?: number) {
+        console.log("Change Mode: ", mode, start, notificationLength);
+        
+        this.mode = mode;
+
+        if (notificationLength) {
+            this.notificationLength = notificationLength;
+        }
+
+        this.startLED = start;
+        this.rePlaceNotifications();
+    }
+
+    /**
+     * Changes the position of the Persistent Notifications
+     * @param start New Start LED
+     */
+    public changePosition(start: number) {
+        this.startLED = start;
+        this.rePlaceNotifications();
+    }
+
     /**
      * Remove all Animations
      */

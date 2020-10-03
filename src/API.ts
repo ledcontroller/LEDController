@@ -164,6 +164,20 @@ export class API {
 
         });
         
+        this.server.post("/api/v1/persistent/settings/mode", (req, res, next) => {
+            
+            if (!(req.body.options && req.body.options.mode !== undefined && req.body.options.startLED)) {
+                return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+
+            this.animationController.changePersistentNotificationsManagerMode(req.body.options.mode, req.body.options.startLED, req.body.options.notificationLength);
+
+            res.contentType = "json";
+            res.send({"status": 200, "message": "Updated Persistent Notification Manager"});
+            return next();
+
+        });
+        
         this.server.post("/api/v1/notifications/*", (req, res, next) => {
             let path = req.getPath();
             let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
