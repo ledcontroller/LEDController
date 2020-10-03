@@ -57,7 +57,7 @@ export class API {
             }
 
             try {
-                let animation = this.animationStore.getAnimation(animationName, parameters);           
+                let animation = this.animationStore.getAnimation(animationName.toLowerCase(), parameters);           
                 this.animationController.changeAnimation(animation);
             } catch (error) {
                 if (error instanceof ParameterParsingError) {
@@ -121,7 +121,7 @@ export class API {
             }
 
             try {
-                let animation = this.animationStore.getAnimation(animationName, parameters);
+                let animation = this.animationStore.getAnimation(animationName.toLowerCase(), parameters);
                 this.animationController.addPersistentNotification(id, animation);          
             } catch (error) {
                 if (error instanceof ParameterParsingError) {
@@ -147,7 +147,7 @@ export class API {
             let path = req.getPath();
             let animationID = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
 
-            this.animationController.removePersistentNotification(animationID);
+            this.animationController.removePersistentNotification(animationID.toLowerCase());
 
             res.contentType = "json";
             res.send({"status": 200, "message": "Removed Persistent Animation"});
@@ -188,7 +188,7 @@ export class API {
             }
             
             try {
-                let notification = this.animationStore.getNotification(notificationName, parameters);            
+                let notification = this.animationStore.getNotification(notificationName.toLowerCase(), parameters);            
                 this.animationController.playNotification(notification);
             } catch (error) {
                 if (error instanceof ParameterParsingError) {
