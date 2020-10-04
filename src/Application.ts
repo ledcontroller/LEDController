@@ -73,7 +73,7 @@ api = new API(animationController, API_OPTIONS);
 
 animationController.start(UPDATES_PER_SECOND);
 
-api.listen(function() {
+api.listen(() => {
     Log.info(`API on Port: ${API_PORT}`);
     Log.info(`Accesstoken: ${TOKEN}`);
     Log.info(`Updates per second: ${UPDATES_PER_SECOND}`);

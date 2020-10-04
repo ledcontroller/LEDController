@@ -4,13 +4,13 @@
 
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/fade HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/fade HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
 {
   "animation": {
-    "duration": 10,
+    "duration": 20,
     "smoothness": 1,
     "colors": [
       {"r": 255, "g": 20, "b": 0, "a": 0.5},
@@ -21,7 +21,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/centertoside HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/centertoside HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -37,7 +37,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/fire HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/fire HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -57,7 +57,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/sidetocenter HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/sidetocenter HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -73,7 +73,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/sidetoside HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/sidetoside HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -89,7 +89,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/blink HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/blink HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -105,7 +105,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/animations/blink HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/animation/blink HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 

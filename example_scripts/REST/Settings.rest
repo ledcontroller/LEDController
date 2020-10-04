@@ -4,7 +4,7 @@
 
 
 ###  START                                                  
-POST http://{{hostname}}:{{port}}/api/v1/start HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/start HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -13,7 +13,7 @@ Authorization: Basic {{token}}
 }
 
 ###                                                  
-POST http://{{hostname}}:{{port}}/api/v1/persistent/settings/mode HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/persistent/settings/mode HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -26,9 +26,9 @@ Authorization: Basic {{token}}
 
 
 ### STOP
-GET http://{{hostname}}:{{port}}/api/v1/stop HTTP/1.1
+GET http://{{hostname}}:{{port}}/api/v2/stop HTTP/1.1
 Authorization: Basic {{token}}
 
 ### STATUS
-GET http://{{hostname}}:{{port}}/api/v1/status HTTP/1.1
+GET http://{{hostname}}:{{port}}/api/v2/status HTTP/1.1
 Authorization: Basic {{token}}

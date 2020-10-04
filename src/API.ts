@@ -1,5 +1,6 @@
 import { AnimationController } from "./AnimationController";
-import { Server } from "restify";
+import { Next, Request, Response, Server } from "restify";
+import { HttpError } from "restify-errors";
 import { ParameterParsingError } from "./Errors/ParameterParsingError";
 import { AnimationNotRunningError } from "./Errors/AnimationNotRunningError";
 import { AnimationStore } from "./AnimationStore";
@@ -20,27 +21,19 @@ export class API {
         this.animationController = animationController;
         this.server = RSF.createServer(options);
         this.server.use(RSF.plugins.bodyParser());
+        this.server.use(RSF.plugins.authorizationParser());
+        this.server.use(RSF.pre.sanitizePath());
         this.options = options;
         this.uptime = new Date().getTime();
         this.animationStore = AnimationStore.getInstance();
 
-        this.registerRoutes();
-    }
-
-
-    private registerRoutes(): void {
-        //TODO: Better type checking (what if parameters is not an object but rather a string etc.) 
-
-        this.server.use((req, res, next) => {
-            LogAPI.info(req.method + " - " + req.url + " - " + JSON.stringify(req.body));
-            return next();
-        });
+        // this.server.use((req : Request, res : Response, next : Next) => {
+        //     LogAPI.info(req.method + " - " + req.url + " - " + JSON.stringify(req.body));
+        //     return next();
+        // });
 
         // Check if the token is used in basic authorization as password for user "token"
-        this.server.use(RSF.plugins.authorizationParser());
-        this.server.use((req, res, next) => {
-            // Skip for status
-            // if (req.getPath().endsWith("/status")) return next();
+        this.server.use((req : Request, res : Response, next : Next) => {
             if (req.username !== "token" || req.authorization.basic.password !== this.options.token) {
                 return next(new ERRORS.UnauthorizedError("Wrong Token"));
             }
@@ -48,131 +41,72 @@ export class API {
         });
 
         // Simple logging
-        this.server.on("Unauthorized", (req, res, err, cb) => {
+        this.server.on("Unauthorized", (req : Request, res : Response, err : Error, cb : Function) => {
             LogAPI.warn(err);
             cb();
         });
 
-        this.server.post("/api/v1/animations/*", (req, res, next) => {
-            let path = req.getPath();
-            let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-            let parameters = req.body.animation;
+        this.registerRoutes();
+    }
 
-            if (!parameters) {
+
+    private registerRoutes(): void {
+        this.server.post("/api/v2/animation/:animationName", (req : Request, res : Response, next : Next) => {
+            if (typeof req.body.animation !== "object") {
                 return next(new ERRORS.BadRequestError("Bad Body"));
             }
 
             try {
-                let animation = this.animationStore.getAnimation(animationName.toLowerCase(), parameters);           
+                let animation = this.animationStore.getAnimation(req.params.animationName.toLowerCase(), req.body.animation);           
                 this.animationController.changeAnimation(animation);
             } catch (error) {
-                if (error instanceof ParameterParsingError) {
-                    return next(new ERRORS.BadRequestError(error.message));
-                }
-                if (error instanceof AnimationNotRunningError) {
-                    return next(new ERRORS.ServiceUnavailableError(error.message));
-                }
-                if (error instanceof AnimationNotFoundError) {
-                    return next(new ERRORS.NotFoundError(error.message));
-                }
-                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+                return next(this.parseError(error));
             }
 
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Changed Animation"});
-            return next();
-        });
-        
-        this.server.post("/api/v1/notification/", (req, res, next) => {
-        
-            if (!req.body.notifications) {
-                return next(new ERRORS.BadRequestError("Bad Body"));
-            }
-
-            for(let notification of req.body.notifications) {
-        
-                //Get Animation Class and Initialize with Parameters from Request
-                if (!notification.parameters) {
-                    return next(new ERRORS.BadRequestError("No Parameters provided"));
-                }
-                try {
-                    let notif = this.animationStore.getNotification(notification.effect, notification.parameters)
-                    this.animationController.playNotification(notif);
-                } catch (error) {
-                    if (error instanceof ParameterParsingError) {
-                        return next(new ERRORS.BadRequestError(error.message))
-                    }
-                    if (error instanceof AnimationNotFoundError) {
-                        return next(new ERRORS.NotFoundError(error.message));
-                    }
-                    return next(new ERRORS.InternalServerError("Something doesn't seem right"));
-                }
-
-            }
-        
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Added Notifications to queue"});
+            res.json({"status": 200, "message": "Changed Animation"});
             return next();
         });
 
-        this.server.post("/api/v1/persistent/animation/add/*", (req, res, next) => {
-
-            let path = req.getPath();
-            let animationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-            let parameters = req.body.animation;
-            let id = req.body.id;
-
-            if (!(parameters && id)) {
+        this.server.post("/api/v2/persistent/animation/add/:animationName/:id", (req : Request, res : Response, next : Next) => {
+            if (typeof req.body.animation !== "object") {
                 return next(new ERRORS.BadRequestError("Bad Body"));
+            }
+
+            if (req.params.id === "" || req.params.id === undefined) {
+                return next(new ERRORS.BadRequestError("Invalid ID"));
             }
 
             try {
-                let animation = this.animationStore.getAnimation(animationName.toLowerCase(), parameters);
-                this.animationController.addPersistentNotification(id, animation);          
+                let animation = this.animationStore.getAnimation(req.params.animationName.toLowerCase(), req.body.animation);
+                this.animationController.addPersistentNotification(req.params.id, animation);          
             } catch (error) {
-                if (error instanceof ParameterParsingError) {
-                    return next(new ERRORS.BadRequestError(error.message));
-                }
-                if (error instanceof AnimationNotRunningError) {
-                    return next(new ERRORS.ServiceUnavailableError(error.message));
-                }
-                if (error instanceof AnimationNotFoundError) {
-                    return next(new ERRORS.NotFoundError(error.message));
-                }
-                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+                return next(this.parseError(error));
             }
 
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Added Persistent Animation"});
+            res.json({"status": 200, "message": "Added Persistent Animation"});
             return next();
-
         });
 
-        this.server.get("/api/v1/persistent/animation/remove/*", (req, res, next) => {
+        this.server.get("/api/v2/persistent/animation/remove/:id", (req : Request, res : Response, next : Next) => {
+            if (req.params.id === "" || req.params.id === undefined) {
+                return next(new ERRORS.BadRequestError("Invalid ID"));
+            }
 
-            let path = req.getPath();
-            let animationID = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
+            this.animationController.removePersistentNotification(req.params.id);
 
-            this.animationController.removePersistentNotification(animationID.toLowerCase());
-
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Removed Persistent Animation"});
+            res.json({"status": 200, "message": "Removed Persistent Animation"});
             return next();
-
         });
 
-        this.server.get("/api/v1/persistent/animation/clear", (req, res, next) => {
+        this.server.get("/api/v2/persistent/animation/clear", (req : Request, res : Response, next : Next) => {
             this.animationController.clearPersistentNotifications();
 
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Cleared Persistent Animations"});
+            res.json({"status": 200, "message": "Cleared Persistent Animations"});
             return next();
-
         });
         
-        this.server.post("/api/v1/persistent/settings/mode", (req, res, next) => {
-            
-            if (!(req.body.options && req.body.options.mode !== undefined && req.body.options.startLED)) {
+        this.server.post("/api/v2/persistent/settings/mode", (req : Request, res : Response, next : Next) => {
+            if (!(req.body.options && typeof req.body.options.mode === "number" && typeof req.body.options.startLED === "number")) {
                 return next(new ERRORS.BadRequestError("Bad Body"));
             }
 
@@ -184,62 +118,47 @@ export class API {
 
         });
         
-        this.server.post("/api/v1/notifications/*", (req, res, next) => {
-            let path = req.getPath();
-            let notificationName = req.url.split(path.substring(0, path.lastIndexOf('/') + 1))[1];
-            let parameters = req.body.notification;
-            
-            if (!parameters) {
+        this.server.post("/api/v2/notification/:notificationName", (req : Request, res : Response, next : Next) => {
+            if (typeof req.body.notification !== "object") {
                 return next(new ERRORS.BadRequestError("Bad Body"));
             }
             
             try {
-                let notification = this.animationStore.getNotification(notificationName.toLowerCase(), parameters);            
+                let notification = this.animationStore.getNotification(req.params.notificationName.toLowerCase(), req.body.notification);            
                 this.animationController.playNotification(notification);
             } catch (error) {
-                if (error instanceof ParameterParsingError) {
-                    return next(new ERRORS.BadRequestError(error.message))
-                }
-                if (error instanceof AnimationNotFoundError) {
-                    return next(new ERRORS.NotFoundError(error.message));
-                }
-                return next(new ERRORS.InternalServerError("Something doesn't seem right"));
+                return next(this.parseError(error));
             }
         
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Added Notification to queue"});
+            res.json({"status": 200, "message": "Added Notification to queue"});
             return next();
         });
         
-        this.server.post("/api/v1/start", (req, res, next) => {
-            if (!req.body.update_per_second) return next(new ERRORS.BadRequestError("Wrong or insufficient parameters"));
+        this.server.post("/api/v2/start", (req : Request, res : Response, next : Next) => {
+            if (typeof req.body.update_per_second !== "number") return next(new ERRORS.BadRequestError("Bad Body"));
 
             this.animationController.start(req.body.update_per_second);
         
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Started animation"});
+            res.json({"status": 200, "message": "Started animation"});
             return next();
         });
         
-        this.server.get("/api/v1/stop", (req, res, next) => {
+        this.server.get("/api/v2/stop", (req : Request, res : Response, next : Next) => {
             this.animationController.stop();
             this.animationController.clearLEDs();
         
-            res.contentType = "json";
-            res.send({"status": 200, "message": "Stopped animation"});
+            res.json({"status": 200, "message": "Stopped animation"});
             return next();
         });
         
-        this.server.get("/api/v1/status", (req, res, next) => {
-            res.contentType = "json";
-            
+        this.server.get("/api/v2/status", (req : Request, res : Response, next : Next) => {
             // Get the name of the current Animation 
             let currentAnimationName: string = "None";
             if (this.animationController.isRunning()) {
                 currentAnimationName = this.animationController.getAnimation().getName();
             }
 
-            res.send({
+            res.json({
                 "status": 200, 
                 "updates_per_second": this.animationController.getUPS(),
                 "running": this.animationController.isRunning(),
@@ -250,14 +169,27 @@ export class API {
             });
             return next();
         });
-        
+    
     }
 
-    listen(cb: Function): void {
+    private parseError(error: Error) : HttpError {
+        if (error instanceof ParameterParsingError) {
+            return new ERRORS.BadRequestError(error.message);
+        }
+        if (error instanceof AnimationNotRunningError) {
+            return new ERRORS.ServiceUnavailableError(error.message);
+        }
+        if (error instanceof AnimationNotFoundError) {
+            return new ERRORS.NotFoundError(error.message);
+        }
+        return new ERRORS.InternalServerError("Something doesn't seem right");
+    }
+
+    public listen(cb: ()=>any): void {
         this.server.listen(this.options.port, cb);
     }
 
-    close(cb: ()=>any): void {
+    public close(cb: ()=>any): void {
         this.server.close(cb);
     }
 

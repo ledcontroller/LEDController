@@ -3,7 +3,7 @@
 @token = token SUPERSECRETCODE
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/notifications/centertoside HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/notification/centertoside HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -22,7 +22,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/notifications/blink HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/notification/blink HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
@@ -41,7 +41,7 @@ Authorization: Basic {{token}}
 }
 
 ###
-POST http://{{hostname}}:{{port}}/api/v1/notifications/rippletocenter HTTP/1.1
+POST http://{{hostname}}:{{port}}/api/v2/notification/rippletocenter HTTP/1.1
 Content-Type: application/json
 Authorization: Basic {{token}}
 
