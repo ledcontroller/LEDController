@@ -4,6 +4,7 @@ import { ParameterParsingError } from "./Errors/ParameterParsingError";
 import { AnimationNotRunningError } from "./Errors/AnimationNotRunningError";
 import { AnimationStore } from "./AnimationStore";
 import { AnimationNotFoundError } from "./Errors/AnimationNotFoundError";
+import { Log, LogAPI } from "./Logger";
 
 const ERRORS = require("restify-errors");
 const RSF = require("restify");
@@ -30,6 +31,11 @@ export class API {
     private registerRoutes(): void {
         //TODO: Better type checking (what if parameters is not an object but rather a string etc.) 
 
+        this.server.use((req, res, next) => {
+            LogAPI.info(req.method + " - " + req.url + " - " + JSON.stringify(req.body));
+            return next();
+        });
+
         // Check if the token is used in basic authorization as password for user "token"
         this.server.use(RSF.plugins.authorizationParser());
         this.server.use((req, res, next) => {
@@ -43,7 +49,7 @@ export class API {
 
         // Simple logging
         this.server.on("Unauthorized", (req, res, err, cb) => {
-            console.error(err);
+            LogAPI.warn(err);
             cb();
         });
 

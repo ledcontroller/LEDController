@@ -1,6 +1,7 @@
 import { IAnimation } from "./Interfaces/IAnimation";
 import { Led } from "./Led";
 import { StationaryAnimation } from "./StationaryAnimation";
+import { Log } from "./Logger";
 
 export class PersistentNotificationsManager {
     private stationaryAnimations: { [id: string]: StationaryAnimation } = {};
@@ -38,6 +39,8 @@ export class PersistentNotificationsManager {
      */
     public add(id: string, animation: IAnimation): void {
         
+        Log.info(`Adding Persistent Notification: ${id}`);
+
         if (this.stationaryAnimations.hasOwnProperty(id)) {
             this.stationaryAnimations[id].changeAnimation(animation);
             this.stationaryAnimations[id].onInit(this.leds);
@@ -72,8 +75,12 @@ export class PersistentNotificationsManager {
      * @param id ID of the Animation to remove
      */
     public remove(id: string): void {
-        
+
+        Log.info(`Removing Persistent Notification: ${id}`);
+
         if (this.stationaryAnimations.hasOwnProperty(id)) {
+            Log.debug(`Notfication found: ${id}`);
+            
             let stationaryAnimation = this.stationaryAnimations[id]; 
             let animationIndex = this.stationaryAnimationsOrdered.findIndex(statAnim => statAnim === stationaryAnimation);
 
@@ -101,9 +108,11 @@ export class PersistentNotificationsManager {
 
             this.stationaryAnimationsOrdered.splice(animationIndex, 1); // remove animation
             delete this.stationaryAnimations[id]; // remove animation
+        }else {
+            Log.debug(`Notfication not found: ${id}`);
         }
 
-    }
+    } 
 
     private rePlaceNotifications() {
 
@@ -149,7 +158,7 @@ export class PersistentNotificationsManager {
      * @param notificationLength Optional: new length of Notifications
      */
     public changeMode(mode: PersistentNotificationMode, start: number, notificationLength?: number) {
-        console.log("Change Mode: ", mode, start, notificationLength);
+        Log.info(`Change Mode: ${mode} ${start} ${notificationLength}`)
         
         this.mode = mode;
 

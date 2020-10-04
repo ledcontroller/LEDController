@@ -1,13 +1,14 @@
 import { AnimationController } from "./AnimationController";
 import { IStripController } from "./Interfaces/IStripController";
 import { API, APIOptions } from "./API";
+import { Log } from "./Logger"; 
 
 const FS = require("fs");
 const VERSION: string = "0.3.0";
 
 // Welcome
-console.log('LED-Controller %s', VERSION);
-console.log('by Lukas Sturm');
+// LED-Controller Version ${VERSION}
+// by Lukas Sturm
 
 const ARGUMENTS = parseArguments(process.argv);
 
@@ -46,19 +47,21 @@ const API_OPTIONS : APIOptions = {
 // Check if cert is available and check if both keys are available
 if (!USEHTTP) {
     if (PRIVATEKEY || PUBLICKEY) {
-        console.log("Using provided Certificate");
+        Log.info("Using provided Certificate");
         if (!FS.existsSync(PRIVATEKEY) || !FS.existsSync(PUBLICKEY)) {
-            console.error("Private or Public Key couldn't be found");
+            Log.error("Private or Public Key couldn't be found");
             exitApplication();
         }
         API_OPTIONS["key"] = FS.readFileSync(PRIVATEKEY);
         API_OPTIONS["certificate"] = FS.readFileSync(PUBLICKEY);
     } else {
-        console.error("No Certificate provided! \nUse -http to run the API without the need of certificates");
+        Log.error("No Certificate provided!");
+        Log.error("Use -http to run the API without the need of certificates");
         exitApplication(); // User should be aware that he is not using a cert and the flag needs to be set by him
     }
 } else {
-    console.warn("Running in unsecure HTTP mode \nConsider using a certificate to encrypt API access");
+    Log.warn("Running in unsecure HTTP mode");
+    Log.warn("Consider using a certificate to encrypt API access");
 }
 
 api = new API(animationController, API_OPTIONS);
@@ -71,10 +74,10 @@ api = new API(animationController, API_OPTIONS);
 animationController.start(UPDATES_PER_SECOND);
 
 api.listen(function() {
-    console.log('API listening on Port %s', API_PORT);
-    console.log('Accesstoken: %s', TOKEN);
-    console.log('Updates per second: %s', UPDATES_PER_SECOND);
-    console.log('Number of LEDs: %s', LEDCOUNT);
+    Log.info(`API on Port: ${API_PORT}`);
+    Log.info(`Accesstoken: ${TOKEN}`);
+    Log.info(`Updates per second: ${UPDATES_PER_SECOND}`);
+    Log.info(`Number of LEDs: ${LEDCOUNT}`);
 });
 
 
@@ -88,19 +91,17 @@ function exitApplication() : void {
         api.close(() => {
             strip.off();
             strip.shutdown(() => {
-                console.log("Bye!");
                 process.exit(0);
             });
         });
     } else {
-        console.log("Bye!");
         process.exit(0);
     }
 }
 
 function instantiateStripController(controllerModuleName : string) : IStripController {
     if (!(typeof controllerModuleName === "string")) {
-        console.error(`No Controllermodule supplied! Use the "stripcontroller" option to specify one`);
+        Log.error(`No Controllermodule supplied! Use the "stripcontroller" option to specify one`);
         exitApplication();
     }
 
@@ -110,10 +111,10 @@ function instantiateStripController(controllerModuleName : string) : IStripContr
     } catch (error) {
         if (error.hasOwnProperty("type")) {
             if (error.type === "parameter") {
-                console.error(error.message);
+                Log.error(error.message);
             }
         } else {
-            console.error(`Couldn't find ${controllerModuleName} either it's not installed or you misspelled it`);
+            Log.error(`Couldn't find ${controllerModuleName} either it's not installed or you misspelled it`);
         }
     
         exitApplication();
