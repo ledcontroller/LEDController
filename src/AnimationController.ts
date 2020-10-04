@@ -5,6 +5,7 @@ import { IStripController } from "./Interfaces/IStripController";
 import { Blink } from "./Animations/Blink";
 import { IColor } from "./Interfaces/IColor";
 import { PersistentNotificationMode, PersistentNotificationsManager } from "./PersistentNotificationsManager";
+import { Log } from "./Logger";
 
 /**
  * AnimationController handles the playback of Animations and Notifications
@@ -79,6 +80,7 @@ export class AnimationController {
      * @throws {AnimationNotRunningError} Animation loop must me running
      */
     public changeAnimation(animation: IAnimation): void {
+        Log.info(`Changing Animation ${animation.getName()}`);
         animation.onInit(this.leds);
 
         if (this.playingNotification) {
@@ -93,7 +95,9 @@ export class AnimationController {
      * @param notification Notification to be played
      */
     public playNotification(notification: INotification): void {
+        Log.info(`Playing Notification ${notification.getName()}`);
         if (this.playingNotification) {
+            Log.debug(`Adding Notification to Queue`);
             this.notificationStack.push(notification);
             return;
         }
@@ -110,10 +114,12 @@ export class AnimationController {
             } else {
                 if (this.stopAfterNotification) {
                     // Restop Loop after notification finished
+                    Log.debug(`Notification finished, stopping Controller`);
                     this.stop();
                     this.clearLEDs();
                 } else {
                     // Only call resume when animation is active
+                    Log.debug(`Notification finished, resuming Animation`);
                     this.animation.onResume(this.leds);
                     this.update();
                 }
@@ -126,6 +132,7 @@ export class AnimationController {
 
         // Start Loop for notification
         if (!this.running && !this.stopAfterNotification) {
+            Log.debug(`Starting Controller for Notification`);
             this.start(this.ups);
             this.stopAfterNotification = true;
         }
@@ -155,9 +162,11 @@ export class AnimationController {
      */
     public start(updatesPerSeconde: number): void {
         if (this.running && this.stopAfterNotification) {
+            Log.info("Starting AnimationController only for Notification");
             this.stopAfterNotification = false;
         }
         if (!this.running) {
+            Log.info("Starting AnimationController");
             this.ups = updatesPerSeconde;
             this.loop = global.setInterval(this.update.bind(this), 1000 / updatesPerSeconde);
             this.running = true;
@@ -168,6 +177,7 @@ export class AnimationController {
      * Stops the Animation loop
      */
     public stop(): void {
+        Log.info("Stopping AnimationController");
         clearInterval(this.loop);
         this.running = false;
     }
@@ -177,6 +187,7 @@ export class AnimationController {
      * All LEDs are set to white
      */
     public clearLEDs(): void {
+        Log.info("Clearing LED Strip");
         this.strip.clear();
         for (let i = 0; i < this.strip.getLength(); i++) {
             this.leds[i] = new Led({r: 0, g: 0, b: 0, a: 1});
