@@ -179,7 +179,7 @@ export class AnimationController {
     public clearLEDs(): void {
         this.strip.clear();
         for (let i = 0; i < this.strip.getLength(); i++) {
-            this.leds.push(new Led({r: 0, g: 0, b: 0, a: 1}));
+            this.leds[i] = new Led({r: 0, g: 0, b: 0, a: 1});
         }
         this.strip.sync();
     }
