@@ -109,14 +109,7 @@ function instantiateStripController(controllerModuleName : string) : IStripContr
         const stripControllerClass : any = __non_webpack_require__(controllerModuleName.toLowerCase()).default;
         return(new stripControllerClass(ARGUMENTS));
     } catch (error) {
-        if (error.hasOwnProperty("type")) {
-            if (error.type === "parameter") {
-                Log.error(error.message);
-            }
-        } else {
-            Log.error(`Couldn't find ${controllerModuleName} either it's not installed or you misspelled it`);
-        }
-    
+        Log.error(`Error loading stripcontroller ${error.message}`);    
         exitApplication();
     }
 }
