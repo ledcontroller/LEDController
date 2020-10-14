@@ -1,4 +1,4 @@
-@hostname = LED-Controller
+@hostname = LED-Dev
 @port = 1234
 @token = token SUPERSECRETCODE
 
