@@ -1,7 +1,8 @@
 # LED-Controller,
 is a restify-API, that can be used to control LED-Strips.
 
-## And this Readme is somewhat outdated :S
+## This Project is not beeing worked on anymore
+## I will upload a newer version written in Rust to github once it is in a state i am comfortable showing people :).
 ---
 
 It is build to run as a service on a Raspberry Pi Zero W. The `AnimationController` constantly updates an [Animation](#Animation). The complete `AnimationController` is designed to include [Notifications](#Notification), a Notification can be played at any time and pauses the current Aninmation. This allows your LEDs to **Notify** you when you receive an E-Mail.
